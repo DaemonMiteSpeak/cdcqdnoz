@@ -4,24 +4,30 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Eternet Client. Клиент для Minecraft</title>
-  <meta name="description" content="Eternet Client: визуальный клиент для Minecraft. HUD, модули и профили можно попробовать прямо на странице.">
+  <meta name="description" content="Eternet Client: визуальный клиент для Minecraft с гибким HUD, профилями конфигураций и менеджером модулей.">
   <meta property="og:title" content="Eternet Client. Клиент для Minecraft">
-  <meta property="og:description" content="Визуальный клиент для Minecraft. HUD, модули и профили можно попробовать прямо на странице.">
+  <meta property="og:description" content="Визуальный клиент для Minecraft с гибким HUD, профилями конфигураций и менеджером модулей.">
   <meta property="og:type" content="website">
   <meta name="theme-color" content="#1B49D2">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%231B49D2'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23FFD84A'/%3E%3Cpath d='M0 16V11H4V9H8V12H12V10H16V16z' fill='%230E2470'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231B49D2'/%3E%3Ccircle cx='21' cy='11' r='5' fill='%23FFDD66'/%3E%3Cpath d='M0 32V22C6 17 12 17 17 21S27 25 32 20V32z' fill='%230E2470'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Onest:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
-    <symbol id="cloud-a" viewBox="0 0 96 24">
-      <path d="M32 0h32v8H32zM16 8h64v8H16zM0 16h96v8H0z"/>
+    <symbol id="cloud-a" viewBox="0 0 200 80">
+      <circle cx="50" cy="52" r="28"/><circle cx="90" cy="36" r="36"/><circle cx="135" cy="46" r="30"/><circle cx="165" cy="58" r="20"/>
+      <rect x="30" y="50" width="150" height="30" rx="15"/>
     </symbol>
-    <symbol id="cloud-b" viewBox="0 0 128 24">
-      <path d="M24 0h24v8H24zM72 0h32v8H72zM16 8h96v8H16zM0 16h128v8H0z"/>
+    <symbol id="cloud-b" viewBox="0 0 260 70">
+      <circle cx="45" cy="48" r="22"/><circle cx="85" cy="34" r="30"/><circle cx="130" cy="40" r="26"/><circle cx="175" cy="30" r="28"/><circle cx="215" cy="46" r="22"/>
+      <rect x="25" y="40" width="210" height="30" rx="15"/>
+    </symbol>
+    <symbol id="cloud-c" viewBox="0 0 120 50">
+      <circle cx="30" cy="34" r="16"/><circle cx="58" cy="24" r="22"/><circle cx="88" cy="32" r="17"/>
+      <rect x="16" y="28" width="90" height="22" rx="11"/>
     </symbol>
     <symbol id="arrow" viewBox="0 0 28 28">
       <path d="M24 25C13 23 6 15 5 4M1 11l4-8 7 6"/>
@@ -35,15 +41,29 @@
     <div class="stars"></div>
     <div class="sun"></div>
     <div class="moon"></div>
-    <svg class="cloud cloud-faint" style="--x: 56%; --y: 42%; --w: 288px; --dur: 90s" viewBox="0 0 96 24"><use href="#cloud-a"/></svg>
-    <svg class="cloud cloud-faint" style="--x: 40%; --y: 64%; --w: 384px; --dur: 70s" viewBox="0 0 128 24"><use href="#cloud-b"/></svg>
-    <svg class="cloud cloud-side" style="--x: -80px; --y: 36%; --w: 192px; --dur: 80s" viewBox="0 0 96 24"><use href="#cloud-a"/></svg>
-    <svg class="cloud cloud-side" style="--x: calc(50% + 500px); --y: 30%; --w: 256px; --dur: 100s" viewBox="0 0 128 24"><use href="#cloud-b"/></svg>
-    <svg class="cloud cloud-side" style="--x: calc(50% + 590px); --y: 58%; --w: 192px; --dur: 75s" viewBox="0 0 96 24"><use href="#cloud-a"/></svg>
-    <div class="hills"></div>
-    <div class="trees"></div>
+    <!-- --p is where a cloud starts on its way across the sky, from 0 to 1 -->
+    <div class="clouds">
+      <svg class="cloud" style="--y: 9%; --w: 300px; --dur: 95s; --p: 0.08" viewBox="0 0 200 80"><use href="#cloud-a"/></svg>
+      <svg class="cloud" style="--y: 14%; --w: 150px; --dur: 160s; --p: 0.92" viewBox="0 0 120 50"><use href="#cloud-c"/></svg>
+      <svg class="cloud" style="--y: 21%; --w: 190px; --dur: 140s; --p: 0.55" viewBox="0 0 120 50"><use href="#cloud-c"/></svg>
+      <svg class="cloud" style="--y: 33%; --w: 380px; --dur: 75s; --p: 0.78" viewBox="0 0 260 70"><use href="#cloud-b"/></svg>
+      <svg class="cloud" style="--y: 46%; --w: 220px; --dur: 120s; --p: 0.3" viewBox="0 0 200 80"><use href="#cloud-a"/></svg>
+      <svg class="cloud" style="--y: 57%; --w: 330px; --dur: 85s; --p: 0.62" viewBox="0 0 260 70"><use href="#cloud-b"/></svg>
+      <svg class="cloud" style="--y: 65%; --w: 170px; --dur: 130s; --p: 0.12" viewBox="0 0 120 50"><use href="#cloud-c"/></svg>
+    </div>
+    <svg class="land ridge" viewBox="0 0 1000 100" preserveAspectRatio="none"><path d="M0 100V58C90 40 170 24 260 30S420 62 520 50S700 14 800 26S940 62 1000 56V100Z"/></svg>
+    <svg class="land hills" viewBox="0 0 1000 100" preserveAspectRatio="none"><path d="M0 100V62C120 44 240 40 360 56S600 84 720 60S900 30 1000 48V100Z"/></svg>
   </div>
-  <div class="ground" aria-hidden="true"></div>
+
+  <!-- The near hill sits in front of the page, so content scrolls behind it -->
+  <div class="front" aria-hidden="true">
+    <svg class="land ground" viewBox="0 0 1000 100" preserveAspectRatio="none"><path d="M0 100V52C120 30 260 28 400 50S640 78 760 44C800 33 840 30 880 32C930 35 970 44 1000 52V100Z"/></svg>
+    <svg class="home" viewBox="0 0 120 80">
+      <path d="M16 14 26 34H21L29 52H3L11 34H6ZM14 52h4v28h-4zM108 28l8 16h-4l7 16H97l7-16h-4ZM106.5 60h3v20h-3zM76 16h7v16h-7zM36 38 66 15 96 38ZM42 38h48v42H42z"/>
+      <rect class="window" x="59" y="46" width="14" height="14" rx="1.5"/>
+      <path class="mullion" d="M66 46V60M59 53H73"/>
+    </svg>
+  </div>
 
   <a class="skip-link" href="#main">Перейти к содержанию</a>
 
@@ -51,7 +71,7 @@
     <nav class="nav" aria-label="Основная навигация">
       <a class="brand" href="#top">Eternet</a>
       <div class="nav-links">
-        <a href="#settings">Настройки</a>
+        <a href="#features">Возможности</a>
         <a href="#pricing">Тарифы</a>
         <a href="#faq">Вопросы</a>
       </div>
@@ -64,128 +84,50 @@
   </header>
 
   <div class="mobile-menu" id="mobile-menu">
-    <a href="#settings" style="--i: 0">Настройки</a>
+    <a href="#features" style="--i: 0">Возможности</a>
     <a href="#pricing" style="--i: 1">Тарифы</a>
     <a href="#faq" style="--i: 2">Вопросы</a>
   </div>
 
   <main id="main">
     <section class="hero container" id="top">
-      <h1 class="hero-title enter" style="--d: 0"><span class="px">Eternet Client.</span> HUD уже у&nbsp;вас на&nbsp;экране</h1>
-      <p class="lead enter" style="--d: 1">Счётчик кадров в углу показывает настоящий FPS этой страницы. Перетащите его, выключите или перекрасьте: в игре интерфейс настраивается так же. Поддерживаемые версии: <span class="placeholder">{{версии}}</span>.</p>
+      <h1 class="hero-title enter" style="--d: 0"><span class="hero-name">Eternet Client.</span> Клиент, с&nbsp;которым засиживаются до&nbsp;ночи</h1>
+      <p class="lead enter" style="--d: 1">Визуальный клиент для Minecraft: гибкий HUD, профили под каждый сервер и понятный менеджер модулей. Поддерживаемые версии: <span class="placeholder">{{версии}}</span>.</p>
       <div class="actions enter" style="--d: 2">
         <a class="btn btn-light" href="#pricing">
           <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/></svg>
           Скачать клиент
         </a>
-        <a class="btn btn-soft" href="#settings">Открыть настройки</a>
+        <a class="btn btn-soft" href="#features">Возможности</a>
       </div>
-      <a class="hand scroll-note enter" style="--d: 4" href="#settings">
+      <a class="hand scroll-note enter" style="--d: 4" href="#features">
         листайте, и стемнеет
         <svg class="arrow arrow-down" viewBox="0 0 28 28" aria-hidden="true"><use href="#arrow"/></svg>
       </a>
     </section>
 
-    <section class="container" id="settings" data-settings>
+    <section class="container" id="features">
       <div class="section-head">
-        <h2>Настройте HUD прямо здесь</h2>
-        <p class="lead">Это не скриншоты. Переключатели ниже управляют виджетами на вашем экране, а выбор сохраняется в браузере.</p>
+        <h2>Что можно настроить</h2>
       </div>
-
-      <div class="rows">
-        <div class="row">
-          <div class="row-info">
-            <span class="row-num">01</span>
-            <h3>Гибкий HUD</h3>
-            <p>Двигайте, масштабируйте и скрывайте элементы экрана. Виджеты перетаскиваются мышью или пальцем, а с клавиатуры двигаются стрелками.</p>
-          </div>
-          <div class="row-controls">
-            <label class="range-row"><span>Масштаб</span><output data-scale-out>100%</output>
-              <input class="range" type="range" min="80" max="140" step="5" value="100" data-scale>
-            </label>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="row-info">
-            <span class="row-num">02</span>
-            <h3>Менеджер модулей</h3>
-            <p>Модули разложены по категориям. У каждого есть описание и понятный переключатель.</p>
-          </div>
-          <div class="row-controls">
-            <p class="group-label">Экран</p>
-            <label class="module">
-              <span class="module-text"><b>FPS</b>Частота кадров. Здесь это настоящий FPS страницы.</span>
-              <input class="sr-only" type="checkbox" role="switch" data-module="fps"><span class="switch"></span>
-            </label>
-            <label class="module">
-              <span class="module-text"><b>Координаты</b>X и Z следуют за курсором, Y меняется с прокруткой.</span>
-              <input class="sr-only" type="checkbox" role="switch" data-module="coords"><span class="switch"></span>
-            </label>
-            <label class="module">
-              <span class="module-text"><b>Часы</b>Игровое время. На странице оно идёт вместе с прокруткой.</span>
-              <input class="sr-only" type="checkbox" role="switch" data-module="clock"><span class="switch"></span>
-            </label>
-            <p class="group-label">Ввод</p>
-            <label class="module">
-              <span class="module-text"><b>Клавиши</b>W, A, S, D и пробел подсвечиваются при нажатии.</span>
-              <input class="sr-only" type="checkbox" role="switch" data-module="keys"><span class="switch"></span>
-            </label>
-            <label class="module">
-              <span class="module-text"><b>CPS</b>Клики в секунду. Проверьте на любой кнопке.</span>
-              <input class="sr-only" type="checkbox" role="switch" data-module="cps"><span class="switch"></span>
-            </label>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="row-info">
-            <span class="row-num">03</span>
-            <h3>Оформление</h3>
-            <p>Цвета, прозрачность, шрифты и размеры интерфейса меняются сразу, без перезапуска игры.</p>
-          </div>
-          <div class="row-controls">
-            <div class="control">
-              <span class="control-label">Акцент</span>
-              <div class="swatches">
-                <button class="swatch" type="button" style="--c: #FFD84A" data-accent="#FFD84A" aria-label="Жёлтый" aria-pressed="true"></button>
-                <button class="swatch" type="button" style="--c: #7DFFC2" data-accent="#7DFFC2" aria-label="Мятный" aria-pressed="false"></button>
-                <button class="swatch" type="button" style="--c: #FF9C7A" data-accent="#FF9C7A" aria-label="Коралловый" aria-pressed="false"></button>
-                <button class="swatch" type="button" style="--c: #FFFFFF" data-accent="#FFFFFF" aria-label="Белый" aria-pressed="false"></button>
-              </div>
-            </div>
-            <label class="range-row"><span>Плотность фона</span><output data-alpha-out>55%</output>
-              <input class="range" type="range" min="0" max="90" step="5" value="55" data-alpha>
-            </label>
-            <div class="control">
-              <span class="control-label">Шрифт</span>
-              <div class="seg">
-                <button type="button" data-font="pixel" aria-pressed="true">Пиксельный</button>
-                <button type="button" data-font="sans" aria-pressed="false">Обычный</button>
-                <button type="button" data-font="hand" aria-pressed="false">Рукописный</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="row-info">
-            <span class="row-num">04</span>
-            <h3>Профили конфигураций</h3>
-            <p>Сохраняйте наборы настроек под разные серверы и сборки. Переключение занимает один клик.</p>
-          </div>
-          <div class="row-controls">
-            <div class="seg">
-              <button type="button" data-profile="pvp" aria-pressed="true">PvP</button>
-              <button type="button" data-profile="survival" aria-pressed="false">Выживание</button>
-              <button type="button" data-profile="stream" aria-pressed="false">Стрим</button>
-            </div>
-            <p class="hint">Каждый профиль помнит свою раскладку, модули и цвет. Обновите страницу: всё останется на месте.</p>
-            <button class="btn btn-soft btn-sm" type="button" data-reset>Сбросить профиль</button>
-          </div>
-        </div>
-      </div>
-      <p class="footnote">Это демонстрация на странице: набор модулей в клиенте может отличаться.</p>
+      <ul class="rows">
+        <li class="row">
+          <div class="row-title"><span class="hand row-num" aria-hidden="true">01</span><h3>Гибкий HUD</h3></div>
+          <p>Двигайте, масштабируйте и скрывайте элементы экрана.</p>
+        </li>
+        <li class="row">
+          <div class="row-title"><span class="hand row-num" aria-hidden="true">02</span><h3>Профили конфигураций</h3></div>
+          <p>Сохраняйте наборы настроек под разные серверы и сборки. Переключение занимает один клик.</p>
+        </li>
+        <li class="row">
+          <div class="row-title"><span class="hand row-num" aria-hidden="true">03</span><h3>Менеджер модулей</h3></div>
+          <p>Все модули разложены по категориям, у каждого есть описание и понятный переключатель.</p>
+        </li>
+        <li class="row">
+          <div class="row-title"><span class="hand row-num" aria-hidden="true">04</span><h3>Визуальные настройки</h3></div>
+          <p>Цвета, прозрачность, шрифты и размеры интерфейса меняются в реальном времени, без перезапуска игры.</p>
+        </li>
+      </ul>
     </section>
 
     <section class="container" id="how">
@@ -194,17 +136,17 @@
       </div>
       <ol class="steps">
         <li>
-          <span class="step-num" aria-hidden="true">1</span>
+          <span class="hand step-num" aria-hidden="true">1</span>
           <h3>Скачайте клиент</h3>
           <p>Установщик загружается с этой страницы после выбора тарифа.</p>
         </li>
         <li>
-          <span class="step-num" aria-hidden="true">2</span>
+          <span class="hand step-num" aria-hidden="true">2</span>
           <h3>Выберите версию Minecraft</h3>
           <p>Клиент подбирает нужную сборку из списка поддерживаемых версий.</p>
         </li>
         <li>
-          <span class="step-num" aria-hidden="true">3</span>
+          <span class="hand step-num" aria-hidden="true">3</span>
           <h3>Загрузите профиль</h3>
           <p>Импортируйте готовую конфигурацию или начните с базовой и настройте её под себя.</p>
         </li>
@@ -270,7 +212,7 @@
     </section>
 
     <section class="final container" id="start">
-      <h2>Теперь соберите такой же HUD в&nbsp;игре</h2>
+      <h2>Вот и ночь. Самое время играть</h2>
       <p class="lead">Выберите тариф, и установщик появится в вашем аккаунте.</p>
       <a class="btn btn-light" href="#pricing">Выбрать тариф</a>
     </section>
@@ -289,25 +231,6 @@
       <p class="small footer-note">Eternet Client не является официальным продуктом Minecraft, не одобрен и не связан с Mojang или Microsoft.</p>
     </div>
   </footer>
-
-  <!-- Last in the document so the widgets come last in the tab order. Shown by script.js. -->
-  <div class="hud" data-hud role="region" aria-label="HUD: виджеты можно перетаскивать" hidden>
-    <span class="guide guide-v" aria-hidden="true"></span>
-    <span class="guide guide-h" aria-hidden="true"></span>
-    <div class="widget" data-widget="fps" role="group" tabindex="0" aria-label="FPS. Перетащите мышью или подвиньте стрелками">
-      <b data-fps>60</b> FPS
-      <span class="hand widget-note" data-note aria-hidden="true">
-        <svg class="arrow" viewBox="0 0 28 28"><use href="#arrow"/></svg>
-        потяните меня
-      </span>
-    </div>
-    <div class="widget" data-widget="coords" role="group" tabindex="0" aria-label="Координаты. Перетащите мышью или подвиньте стрелками">X <b data-cx>0</b> Y <b data-cy>320</b> Z <b data-cz>0</b></div>
-    <div class="widget" data-widget="clock" role="group" tabindex="0" aria-label="Часы. Перетащите мышью или подвиньте стрелками"><b data-clock>08:00</b></div>
-    <div class="widget widget-keys" data-widget="keys" role="group" tabindex="0" aria-label="Клавиши. Перетащите мышью или подвиньте стрелками">
-      <kbd data-key="KeyW">W</kbd><kbd data-key="KeyA">A</kbd><kbd data-key="KeyS">S</kbd><kbd data-key="KeyD">D</kbd><kbd data-key="Space"></kbd>
-    </div>
-    <div class="widget" data-widget="cps" role="group" tabindex="0" aria-label="CPS. Перетащите мышью или подвиньте стрелками"><b data-cps>0</b> CPS</div>
-  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
   <script src="script.js"></script>
