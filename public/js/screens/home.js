@@ -19,7 +19,7 @@ export default async function home({ S }) {
         ${row('film', 'Медиа и заработок', promoLine, '', '/media')}
       </nav>
       <section class="sec">${secHead('Документы', 'откроются в браузере')}
-        <div class="field nav">
+        <div class="field nav docs">
           <button class="m-row" data-ext="${esc(S.links.offer)}">${icon('file')}<span class="m-text"><span class="m-t">Публичная оферта</span></span>${icon('external', 'chev')}</button>
           <button class="m-row" data-ext="${esc(S.links.privacy)}">${icon('shield')}<span class="m-text"><span class="m-t">Политика конфиденциальности</span></span>${icon('external', 'chev')}</button>
         </div>

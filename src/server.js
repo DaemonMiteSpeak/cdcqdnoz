@@ -57,8 +57,8 @@ export function createServer(bot) {
     let tg = null;
     const auth = req.get('authorization') || '';
     if (auth.startsWith('tma ') && config.botToken) tg = verifyInitData(auth.slice(4));
-    if (!tg && config.dev && req.get('x-dev-user')) {
-      tg = { id: Number(req.get('x-dev-user')), first_name: req.get('x-dev-name') || 'Dev', username: req.get('x-dev-username') || 'YukeeDesign' };
+    if (!tg && config.dev) {
+      tg = { id: Number(req.get('x-dev-user') || 1), first_name: req.get('x-dev-name') || 'Dev', username: req.get('x-dev-username') || 'YukeeDesign' };
     }
     if (!tg) return res.status(401).json({ error: 'unauthorized' });
     req.user = S.upsertUser(tg);

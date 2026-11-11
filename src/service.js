@@ -50,6 +50,7 @@ export function stateFor(u) {
   const promo = u.promo_code ? promoStats(u) : null;
   return {
     maintenance: kvGet('maintenance', '0') === '1',
+    maintenanceUntil: Number(kvGet('maintenance_until', '0')) || 0,
     user: {
       id: u.id, name: displayName(u), photo: u.photo_url, createdAt: u.created_at,
       tag: u.tag, ownedTags: owned,

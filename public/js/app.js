@@ -56,7 +56,7 @@ async function render() {
       app.S = await get('/state');
       ctx.S = app.S;
     }
-    if (app.S.maintenance) return show(id, (await import('./screens/system.js')).maintenance(), null, path);
+    if (app.S.maintenance) return show(id, (await import('./screens/system.js')).maintenance({ until: app.S.maintenanceUntil }), (el) => $('[data-retry]', el)?.addEventListener('click', () => { app.S = null; render(); }), path);
     if (!app.S.user.gate && path !== '/gate') return go('/gate', { replace: true });
     const mod = await route[1]();
     const view = await mod.default(ctx);
@@ -65,7 +65,7 @@ async function render() {
     if (id !== navId) return;
     const sys = await import('./screens/system.js');
     if (e instanceof HttpError && e.code === 'gate') { app.S = null; return go('/gate', { replace: true }); }
-    if (e instanceof HttpError && e.code === 'maintenance') return show(id, sys.maintenance(), null, path);
+    if (e instanceof HttpError && e.code === 'maintenance') return show(id, sys.maintenance(), (el) => $('[data-retry]', el)?.addEventListener('click', () => { app.S = null; render(); }), path);
     console.error(e);
     show(id, sys.unavailable(), (el) => $('[data-retry]', el)?.addEventListener('click', () => { app.S = null; render(); }), path);
   }

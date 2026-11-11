@@ -1,4 +1,4 @@
-import { esc, bar, icon, profileCard, tagOf, days, dmy, hm, plural, secHead, toast } from '../ui.js';
+import { esc, greeting, bar, icon, profileCard, tagOf, days, dmy, hm, plural, secHead, toast } from '../ui.js';
 import { post, HttpError } from '../api.js';
 import { setState, go } from '../app.js';
 
@@ -20,7 +20,7 @@ function render(S) {
   const stats = S.stats;
   return `<main class="app prof">
     <header class="bar"><button class="back" data-go="/" data-back aria-label="На главную">${icon('chevronLeft')}</button><span class="bar-title">Профиль</span></header>
-    ${profileCard(S, { top: 'Добрый день,', sub: `с нами с ${dmy(S.user.createdAt)}` }).replace('Добрый день,', greet())}
+    ${profileCard(S, { top: greeting(), sub: `с нами с ${dmy(S.user.createdAt)}` })}
     <section class="sec">${secHead('Подписка', on ? `до ${dmy(S.sub.until)}` : 'срок истёк', on ? '<span class="s-r ok">активна</span>' : '<span class="s-r bad">не активна</span>')}
       <div class="field sub">
         <div class="days-row"><span class="days ${on ? '' : 'zero'}">${S.sub.daysLeft}<small>${plural(S.sub.daysLeft, 'день', 'дня', 'дней')}</small></span>
@@ -46,7 +46,6 @@ function render(S) {
     <div id="layer"></div>
   </main>`;
 }
-const greet = () => { const h = new Date().getHours(); return h >= 5 && h < 12 ? 'Доброе утро,' : h >= 12 && h < 18 ? 'Добрый день,' : h >= 18 && h < 23 ? 'Добрый вечер,' : 'Доброй ночи,'; };
 
 export default async function profile(ctx) {
   let S = ctx.S;
@@ -80,7 +79,7 @@ export default async function profile(ctx) {
               <p class="res-d">Новый HWID привяжется при следующем запуске Hider — запусти программу на нужном ПК</p></div>
               <div class="field rows in">${kv('Осталось сбросов', ns.hwid.resets)}${kv('Статус', 'ждёт запуска', 'warn')}</div>
               <div class="btns one"><button class="btn" id="done">${icon('check')}<span>Готово</span></button></div>`);
-            layer.querySelector('#done').addEventListener('click', () => { el.outerHTML = render(S); go('/profile', { replace: true }); location.reload(); });
+            layer.querySelector('#done').addEventListener('click', () => window.dispatchEvent(new HashChangeEvent('hashchange')));
           } catch (er) {
             if (er instanceof HttpError && er.code === 'too_often') { S.hwid.nextResetAt = er.body.retryAt; S.hwid.lastResetAt = er.body.lastResetAt; tooOften(layer, S.hwid, close); }
             else { close(); toast('Не удалось сбросить HWID'); }

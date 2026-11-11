@@ -22,7 +22,7 @@ export const plural = (n, a, b, c) => {
 export const days = (n) => `${n} ${plural(n, 'день', 'дня', 'дней')}`;
 export const greeting = () => {
   const h = new Date().getHours();
-  return h >= 5 && h < 12 ? 'Доброе утро,' : h >= 12 && h < 18 ? 'Добрый день,' : h >= 18 && h < 23 ? 'Добрый вечер,' : 'Доброй ночи,';
+  return h >= 5 && h < 12 ? 'Доброе утро,' : h >= 12 && h < 19 ? 'Добрый день,' : h >= 19 && h < 23 ? 'Добрый вечер,' : 'Доброй ночи,';
 };
 export const tagOf = (S, id) => S.catalog.tags.find((t) => t.id === id) || S.catalog.tags[0];
 

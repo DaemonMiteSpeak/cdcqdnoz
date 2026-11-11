@@ -167,3 +167,9 @@ s.dim{color:var(--color-text-4);font-weight:500}.row .v.bad{color:#FF6B6E}
 .opt:has(>.radio:first-child) .opt-price{margin-left:auto}
 
 .kbds s{text-decoration:none;color:var(--color-text-4);font-size:10px;line-height:20px}.step-d .warn,.warn{font-weight:600}
+/* metrics tuned against the design layers */
+.profile{padding:12px 12px 12px 11px}.profile.big{padding:17px 15px}
+.nav{padding:0}.m-row{height:48px;padding:0 15px;box-sizing:border-box}.nav.docs .m-row{height:43px}
+.rows{padding:2px 13px}.row{padding:8px 0}
+.tbl>div{padding:7px 0}.rules{gap:10px}
+#layer{display:contents}.row{padding:7px 0}.slide{gap:10px}.tbl>div{padding:6px 0}

@@ -47,7 +47,7 @@ export function createBot() {
     '/grant <uid> <дней> — выдать подписку', '/media <uid> on|off — статус Медиа',
     '/videos — ролики на проверке', '/video <id> <просмотры> | /video <id> no [причина]',
     '/withdrawals — заявки на вывод', '/wpay <id> [заметка] | /wno <id> [причина]',
-    '/maintenance on|off', '/user <uid>',
+    '/maintenance on [минут]|off', '/user <uid>',
   ].join('\n'))));
 
   bot.command('orders', guard(async (ctx) => {
@@ -93,9 +93,11 @@ export function createBot() {
   bot.command('wpay', guard(async (ctx, [id, ...note]) => { reviewWithdrawal(Number(id), { approve: true, note: note.join(' ') }); await ctx.reply('Выплачено'); }));
   bot.command('wno', guard(async (ctx, [id, ...note]) => { reviewWithdrawal(Number(id), { approve: false, note: note.join(' ') }); await ctx.reply('Отклонено'); }));
 
-  bot.command('maintenance', guard(async (ctx, [mode]) => {
+  bot.command('maintenance', guard(async (ctx, [mode, minutes]) => {
+    const min = Number(minutes) || 0;
     kvSet('maintenance', mode === 'on' ? '1' : '0');
-    await ctx.reply(`Технические работы: ${mode === 'on' ? 'включены' : 'выключены'}`);
+    kvSet('maintenance_until', mode === 'on' && min ? Date.now() + min * 60000 : 0);
+    await ctx.reply(`Технические работы: ${mode === 'on' ? `включены${min ? ` на ${min} мин` : ''}` : 'выключены'}`);
   }));
 
   bot.command('user', guard(async (ctx, [uid]) => {
