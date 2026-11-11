@@ -7,12 +7,20 @@ if (config.dev && process.env.DEV_NOW) {
 }
 import { createBot, setupMenu } from './bot.js';
 import { createServer } from './server.js';
-import { startPoller } from './payments.js';
+import { startPayments } from './payments.js';
 
 const bot = createBot();
 const app = createServer(bot);
-app.listen(config.port, '0.0.0.0', () => console.log(`web on :${config.port}${config.dev ? ' (DEV)' : ''}`));
-startPoller();
+await new Promise((ok) => app.listen(config.port, '0.0.0.0', ok));
+console.log(`web on :${config.port}${config.dev ? ' (DEV)' : ''}`);
+startPayments();
+
+if (process.env.TUNNEL === '1') {
+  const { startTunnel } = await import('./tunnel.js');
+  config.webappUrl = await startTunnel(config.port);
+  if (!config.launchBase) config.launchBase = config.webappUrl;
+  console.log(`public url ${config.webappUrl}`);
+}
 
 if (bot) {
   bot.start({ onStart: (me) => console.log(`bot @${me.username} started`) });

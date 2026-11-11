@@ -56,7 +56,7 @@ export async function checkPayment(order) {
   return getOrder(order.id);
 }
 
-export function startPoller() {
+export function startPayments() {
   if (!config.cryptoBotToken) return;
   setInterval(async () => {
     const rows = db.prepare("SELECT * FROM orders WHERE status='pending' AND method='cryptobot' AND ext_id IS NOT NULL AND expires_at>?").all(Date.now());
