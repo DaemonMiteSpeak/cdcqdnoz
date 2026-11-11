@@ -77,6 +77,7 @@ export function stateFor(u) {
 }
 
 export function availableMethods() {
+  if (config.demoPay) return { sbp: true, cryptobot: true, funpay: true, stars: true };
   return {
     sbp: !!(config.sbpUrlTemplate || config.sbpRequisites),
     cryptobot: !!config.cryptoBotToken,

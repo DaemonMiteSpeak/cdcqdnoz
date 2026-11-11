@@ -101,5 +101,6 @@ window.addEventListener('popstate', () => { dir = 'right'; });
 export function start() {
   app.root = $('#root');
   render();
+  setTimeout(() => ROUTES.forEach(([, load]) => load().catch(() => {})), 300);
 }
 export { toast, post };

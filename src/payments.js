@@ -18,7 +18,18 @@ async function cryptoCall(method, body) {
   return j.result;
 }
 
+/** Demo mode: no provider; after 5 s the order is paid (50%) or cancelled. */
+function startDemoPayment(order) {
+  setTimeout(() => {
+    if (getOrder(order.id)?.status !== 'pending') return;
+    if (Math.random() < 0.5) settleOrder(order.id, { by: 'demo' });
+    else db.prepare("UPDATE orders SET status='cancelled', note='demo_declined' WHERE id=? AND status='pending'").run(order.id);
+  }, 5000).unref();
+  return getOrder(order.id);
+}
+
 export async function startPayment(order) {
+  if (config.demoPay) return startDemoPayment(order);
   const title = `${LABELS[order.kind]} · №${order.id}`;
   let url = null;
   let extId = null;

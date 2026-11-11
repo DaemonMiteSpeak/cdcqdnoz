@@ -96,7 +96,7 @@ export default async function order({ S, params, query }) {
         if (left <= 0) { o.status = 'expired'; clearInterval(timer); return paint(root); }
         root.querySelector('#tm').textContent = mmss(left);
         root.querySelector('#tf').style.width = `${Math.round((left / total) * 100)}%`;
-        if (++n % 4 === 0) await check(root);
+        if (++n % 2 === 0) await check(root);
       }, 1000);
     },
   };

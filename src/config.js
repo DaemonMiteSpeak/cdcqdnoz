@@ -27,6 +27,7 @@ export const config = {
   supportUrl: env.SUPPORT_URL || 'https://t.me/shemember',
   admins: (env.ADMIN_IDS || '').split(',').map((s) => Number(s.trim())).filter(Boolean),
   dev: env.DEV === '1',
+  demoPay: env.DEMO_PAY === '1',
   dbFile: env.DB_FILE || path.join(ROOT, 'data', 'hider.db'),
   offerUrl: env.OFFER_URL || 'https://hider.su/offer',
   privacyUrl: env.PRIVACY_URL || 'https://hider.su/privacy',
