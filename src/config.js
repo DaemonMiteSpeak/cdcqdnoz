@@ -28,6 +28,7 @@ export const config = {
   admins: (env.ADMIN_IDS || '').split(',').map((s) => Number(s.trim())).filter(Boolean),
   dev: env.DEV === '1',
   demoPay: env.DEMO_PAY === '1',
+  freePromo: (env.FREE_PROMO_CODE || '').trim(),
   dbFile: env.DB_FILE || path.join(ROOT, 'data', 'hider.db'),
   offerUrl: env.OFFER_URL || 'https://hider.su/offer',
   privacyUrl: env.PRIVACY_URL || 'https://hider.su/privacy',

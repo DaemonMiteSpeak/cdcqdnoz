@@ -116,6 +116,7 @@ export function createServer(bot) {
   api.post('/orders', wrap(async (req, res) => {
     const id = S.createOrder(req.user, req.body);
     let o = S.getOrder(id);
+    if (o.amount_rub === 0) return res.json(S.orderView(S.settleOrder(id, { by: 'free_promo' })));
     try {
       o = await startPayment(o);
     } catch (e) {

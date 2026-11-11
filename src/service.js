@@ -143,13 +143,20 @@ export function quote(u, { kind, item, promo }) {
   const base = basePrice(kind, item);
   if (kind === 'tag' && ownedTags(u).includes(item)) throw new ApiError(409, 'tag_owned');
   let promoRow = null;
+  let pct = 0;
+  let code = null;
   if (promo) {
-    promoRow = findPromo(promo);
-    if (!promoRow) throw new ApiError(404, 'promo_not_found');
+    if (config.freePromo && String(promo).trim() === config.freePromo) {
+      pct = 100; code = config.freePromo;
+    } else {
+      promoRow = findPromo(promo);
+      if (!promoRow) throw new ApiError(404, 'promo_not_found');
+      pct = PROMO_BUYER_PCT; code = promoRow.code;
+    }
   }
-  const discount = promoRow ? Math.round((base * PROMO_BUYER_PCT) / 100) : 0;
+  const discount = Math.round((base * pct) / 100);
   const total = base - discount;
-  const q = { kind, item: String(item), base, discount, total, promo: promoRow ? promoRow.code : null, pct: promoRow ? PROMO_BUYER_PCT : 0 };
+  const q = { kind, item: String(item), base, discount, total, promo: code, pct };
   if (kind === 'sub') {
     const start = Math.max(Date.now(), u.sub_until);
     q.activeUntil = start + Number(item) * DAY;
