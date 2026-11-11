@@ -4,7 +4,7 @@ Landing page for **Eternet Client**, a visual client for Minecraft. Static site,
 
 - `index.html`: markup and inline SVG artwork
 - `styles.css`: theme tokens, layout and motion
-- `script.js`: smooth scroll, navigation, the scroll-driven time of day and the live HUD
+- `script.js`: smooth scroll, navigation and the scroll-driven time of day
 
 ## Run locally
 
