@@ -1,0 +1,11 @@
+node_modules/
+data/
+.env
+design/psd/
+design/png/
+design/dump/
+design/fetch.log
+__pycache__/
+design/png1/
+design/*.txt
+design/*.log
