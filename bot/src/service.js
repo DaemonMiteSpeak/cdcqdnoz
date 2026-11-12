@@ -325,7 +325,7 @@ export function activateKey(u, raw) {
   const res = tx(() => {
     const k = db.prepare('SELECT * FROM keys WHERE code=?').get(code);
     if (!k) return { err: [404, 'key_not_found'] };
-    if (k.used_by) return { err: [409, 'key_used'] };
+    if (k.used_by || k.used_at) return { err: [409, 'key_used'] };
     if (k.blocked) return { err: [403, 'key_blocked'] };
     const cur = getUser(u.id);
     const until = Math.max(Date.now(), cur.sub_until) + k.days * DAY;

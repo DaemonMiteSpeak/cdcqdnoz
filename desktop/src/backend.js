@@ -129,10 +129,31 @@ class Backend extends EventEmitter {
       authed: !!this.profile, profile: this.profile, conn: this.conn, phase: this.phase,
       address: this.address, server: this.server, version: this.version, msa: this.msa,
       clients: s ? s.clientsInfo() : [], canSwitch: !!(s && !s.closed && s.canSwitch()),
-      prefs: this.prefs(), online: this.online, cosmetics: this.cosState().equipped
+      prefs: this.prefs(), online: this.online, onlineUsers: ((this.presence && this.presence.users) || []).map((u) => ({ name: u.name, nick: u.nick, tag: u.tag })), cosmetics: this.cosState().equipped
     };
   }
   pushState() { this.emit('state', this.getState()); }
+
+  /* Avatar is fetched here (Node network stack) and handed to the UI as a data URI. */
+  fetchAvatar(url) {
+    if (!/^https:\/\//.test(url || '')) { this._avaUrl = ''; return; }
+    if (this._avaUrl === url && this.profile && this.profile.avatarData) return;
+    this._avaUrl = url;
+    const req = https.get(url, { timeout: 8000 }, (res) => {
+      if (res.statusCode !== 200) { res.resume(); return; }
+      const chunks = []; let n = 0;
+      res.on('data', (d) => { n += d.length; if (n > 400000) { req.destroy(); return; } chunks.push(d); });
+      res.on('end', () => {
+        if (!this.profile || this._avaUrl !== url || n > 400000) return;
+        const t = String(res.headers['content-type'] || 'image/jpeg').split(';')[0];
+        if (!/^image\//.test(t)) return;
+        this.profile.avatarData = 'data:' + t + ';base64,' + Buffer.concat(chunks).toString('base64');
+        this.pushState();
+      });
+    });
+    req.on('error', () => { /* letter fallback */ });
+    req.on('timeout', () => req.destroy());
+  }
 
   addLog(e, send) {
     const entry = { ts: e.ts || Date.now(), sev: e.sev || 'info', tag: e.tag || '', msg: String(e.msg || '') };
@@ -287,7 +308,8 @@ class Backend extends EventEmitter {
     switch (m.t) {
       case 'hello': {
         this.retry = 0; this.conn = 'online';
-        this.profile = { name: m.name, tag: m.tag, until: m.until, created: m.created };
+        this.profile = { id: m.id, name: m.name, firstName: m.firstName || '', tag: m.tag, tagColor: m.tagColor || '', avatar: m.avatar || '', until: m.until, created: m.created };
+        this.fetchAvatar(this.profile.avatar);
         if (m.token) { this.token = m.token; this.store.token = this.o.encrypt ? this.o.encrypt(m.token) : null; }
         if (m.name) this.store.user = m.name;
         this.saveStore();
