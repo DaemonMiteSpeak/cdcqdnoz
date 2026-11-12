@@ -72,6 +72,15 @@ export function toast(msg) {
   setTimeout(() => el.remove(), 2600);
 }
 
+/** Opens a link in the system browser (a download must not go through Telegram's in-app browser / downloader). */
+export function openExternal(url) {
+  const tg = window.Telegram?.WebApp;
+  if (!tg) { window.open(url, '_blank'); return; }
+  // try_browser (client 7.6+) asks the Telegram app to hand the link to the named system browser
+  const browser = { android: 'chrome', ios: 'safari', macos: 'safari' }[tg.platform];
+  tg.openLink(url, browser ? { try_browser: browser } : {});
+}
+
 export function openLink(url) {
   const tg = window.Telegram?.WebApp;
   if (tg && /^https?:\/\/t\.me\//.test(url)) tg.openTelegramLink(url);

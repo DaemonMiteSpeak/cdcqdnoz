@@ -1,4 +1,4 @@
-import { esc, icon, bar, toast, openLink } from '../ui.js';
+import { esc, icon, bar, toast, openExternal } from '../ui.js';
 import { get, post, HttpError } from '../api.js';
 import { go } from '../app.js';
 
@@ -40,9 +40,10 @@ function view(A, st) {
       ${A.username ? '' : '<p class="dl-hint">Без username можно войти по своему Telegram ID — он указан в профиле</p>'}
     </section>
     <button class="btn ${st.busy ? 'busy' : ''}" id="get" ${rel && !st.busy ? '' : 'disabled'}>${icon('download')}<span>${st.busy ? 'Готовим файл…' : 'Скачать EXE'}</span></button>
-    ${st.link ? `<section class="sec"><div class="sec-head"><div><span class="s-t">Прямая ссылка</span><span class="s-d">откроется в браузере и скачает файл · действует 6 часов</span></div></div>
+    ${st.link ? `<section class="sec"><div class="sec-head"><div><span class="s-t">Прямая ссылка</span><span class="s-d">откройте в браузере — файл скачается · действует 6 часов</span></div></div>
       <div class="field dl-link"><code id="lnk">${esc(st.link)}</code></div>
-      <div class="dl-actions"><button class="btn-sm" id="cplink" type="button">${icon('copy')}Копировать ссылку</button><button class="btn-sm" id="openlink" type="button">${icon('external')}Открыть в браузере</button></div></section>` : ''}
+      <div class="dl-actions"><button class="btn-sm" id="cplink" type="button">${icon('copy')}Копировать ссылку</button><button class="btn-sm" id="openlink" type="button">${icon('external')}Открыть в браузере</button></div>
+      <p class="dl-hint">Если файл начал скачиваться внутри Telegram — скопируйте ссылку и вставьте её в браузер.</p></section>` : ''}
     ${st.done ? `<p class="dl-hint ok">${esc(st.done)}</p>` : ''}
   </main>`;
 }
@@ -69,14 +70,14 @@ export default async function launch({ S }) {
       }
     };
     root.querySelector('#cplink')?.addEventListener('click', async () => { await copyText(st.link); toast('Ссылка скопирована'); });
-    root.querySelector('#openlink')?.addEventListener('click', () => openLink(st.link));
+    root.querySelector('#openlink')?.addEventListener('click', () => openExternal(st.link));
     root.querySelector('#get').addEventListener('click', async () => {
       st.busy = true; st.done = ''; paint(root);
       try {
         const t = await post('/download/ticket', { filename: st.name.trim() || 'Hider', randomSize: st.rand });
         st.link = t.url;
-        // opened in the system browser (not Telegram's built-in downloader)
-        openLink(t.url);
+        // handed to the system browser (not Telegram's built-in downloader)
+        openExternal(t.url);
         st.done = `${t.filename} · ${mb(t.size)}${t.extraBytes ? ` (+${mb(t.extraBytes)})` : ''}`;
       } catch (e) {
         const code = e instanceof HttpError ? e.code : '';

@@ -179,7 +179,7 @@ export function createServer(bot) {
   }));
 
   app.use('/api', api);
-  app.use(express.static(path.join(ROOT, 'public'), { extensions: ['html'], maxAge: config.dev ? 0 : '1h' }));
+  app.use(express.static(path.join(ROOT, 'public'), { extensions: ['html'], maxAge: 0 }));
   app.use((req, res) => res.status(404).type('text/plain').send('Not found'));
   return app;
 }
