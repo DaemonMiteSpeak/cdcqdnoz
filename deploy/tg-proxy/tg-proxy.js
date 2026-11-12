@@ -38,9 +38,13 @@ function connect() {
   c.on('tcp connection', (info, accept) => {
     const ch = accept();
     const s = net.connect(WEB_LOCAL, '127.0.0.1');
-    ch.pipe(s).pipe(ch);
-    const done = () => { try { ch.destroy(); } catch { /* ignore */ } try { s.destroy(); } catch { /* ignore */ } };
-    ch.on('error', done); s.on('error', done); ch.on('close', done); s.on('close', done);
+    // Never destroy the channel when the local socket closes: the last buffered bytes of a response would be cut off.
+    // pipe() half-closes the channel gracefully (ch.end()) once everything is written.
+    ch.pipe(s);
+    s.pipe(ch);
+    s.on('error', () => { try { ch.destroy(); } catch { /* ignore */ } });
+    ch.on('error', () => { try { s.destroy(); } catch { /* ignore */ } });
+    ch.on('close', () => { try { s.destroy(); } catch { /* ignore */ } });
   });
   c.on('error', (e) => console.error('ssh error', e.message))
     .on('close', () => { ready = false; if (conn === c) { setTimeout(connect, retry); retry = Math.min(retry * 2, 30000); } })
