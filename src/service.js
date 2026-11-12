@@ -6,6 +6,12 @@ import {
 import { db, tx, kvGet } from './db.js';
 
 const DAY = 86400000;
+
+/** Короткий необратимый код HWID для показа пользователю: XXXX-XXXX-XXXX. В базе хранится полный HWID. */
+export const hwidCode = (h) => (h
+  ? crypto.createHash('sha256').update(String(h)).digest('hex').slice(0, 12).toUpperCase().replace(/(.{4})(?=.)/g, '$1-')
+  : null);
+
 export class ApiError extends Error {
   constructor(status, code, extra = {}) {
     super(code);
@@ -61,7 +67,7 @@ export function stateFor(u) {
       progress: u.sub_total_days > 0 ? Math.min(1, left / u.sub_total_days) : 0,
     },
     hwid: {
-      value: u.hwid, resets: u.hwid_resets, lastResetAt: u.last_reset_at,
+      value: hwidCode(u.hwid), resets: u.hwid_resets, lastResetAt: u.last_reset_at,
       nextResetAt: u.last_reset_at ? u.last_reset_at + HWID_COOLDOWN_MS : 0,
     },
     stats: { launches: u.launches, lastLaunchAt: u.last_launch_at },

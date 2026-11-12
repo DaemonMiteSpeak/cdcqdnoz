@@ -57,7 +57,8 @@ const run = () => {
     const until = toMs(o.expires_at);
     const created = toMs(o.created_at) || now;
     const days = totalDays.get(tgId) || 0;
-    const hwid = o.hwid || null;
+    // Та же нормализация, что в consumeLaunch: иначе сверка при запуске не совпадёт.
+    const hwid = o.hwid ? String(o.hwid).toUpperCase().replace(/[^0-9A-F-]/g, '').slice(0, 32) || null : null;
     if (exists.get(id)) {
       update.run(o.username || null, until, days, hwid, created, id);
       stats.updated++;
