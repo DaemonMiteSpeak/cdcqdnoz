@@ -15,7 +15,9 @@ async function ensureBinary() {
 export async function startTunnel(port) {
   await ensureBinary();
   return new Promise((resolve, reject) => {
-    const p = spawn(BIN, ['tunnel', '--no-autoupdate', '--url', `http://localhost:${port}`], { stdio: ['ignore', 'pipe', 'pipe'] });
+    // Свой конфиг нужен, если на хосте уже есть /etc/cloudflared/config.yml: его ingress перехватывает quick tunnel.
+    const cfg = process.env.CLOUDFLARED_CONFIG ? ['--config', process.env.CLOUDFLARED_CONFIG] : [];
+    const p = spawn(BIN, ['tunnel', ...cfg, '--no-autoupdate', '--url', `http://localhost:${port}`], { stdio: ['ignore', 'pipe', 'pipe'] });
     const timer = setTimeout(() => reject(new Error('tunnel timeout')), 40000);
     const onData = (d) => {
       const m = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(String(d));
