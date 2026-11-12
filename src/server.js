@@ -104,6 +104,11 @@ export function createServer(bot) {
     const u = S.resetHwid(req.user);
     res.json(S.stateFor(u));
   }));
+  api.post('/key/activate', wrap(async (req, res) => {
+    const r = S.activateKey(req.user, req.body.key);
+    res.json({ days: r.days, state: S.stateFor(r.user) });
+  }));
+
   api.post('/tags/select', wrap(async (req, res) => res.json(S.stateFor(S.selectTag(req.user, req.body.tag)))));
 
   api.get('/launch', wrap(async (req, res) => res.json({ launch: S.launchCommand(req.user) })));

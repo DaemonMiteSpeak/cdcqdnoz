@@ -30,6 +30,7 @@ function render(S) {
     </section>
     ${on ? `<button class="btn" data-go="/launch">${icon('power')}<span>Запустить Hider</span></button>`
       : `<button class="btn off" data-go="/buy">${icon('lock')}<span>Запустить Hider</span><span class="need">· нужна подписка</span></button>`}
+    <button class="field row-btn" id="activate">${icon('key', 'ic')}<span class="grow m-t">Активировать ключ</span>${icon('chevronRight', 'chev')}</button>
     <button class="field row-btn" data-go="/tags">${icon('tag', 'ic')}<span class="grow m-t">Тег профиля</span><span class="m-r" style="color:${t.color}">${esc(t.title)}</span>${icon('chevronRight', 'chev')}</button>
     <section class="sec">${secHead('Статистика', 'за всё время')}
       <div class="field rows">
@@ -55,6 +56,38 @@ export default async function profile(ctx) {
       const layer = el.querySelector('#layer');
       const close = () => { layer.innerHTML = ''; };
       layer.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) close(); });
+      el.querySelector('#activate').addEventListener('click', () => {
+        layer.innerHTML = sheet(`<div class="res center">${resIco('ok', 'key')}<h2 class="res-t">Активация ключа</h2>
+          <p class="res-d">Введи ключ вида HIDER-XXXX-XXXX-XXXX — дни добавятся к подписке</p></div>
+          <div class="field det"><i>Ключ</i><input id="key" class="mono" placeholder="HIDER-XXXX-XXXX-XXXX" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+          <p class="res-d center" id="kerr" style="color:var(--color-red,#ff6b6e);min-height:18px"></p>
+          <div class="btns"><button class="btn ghost" data-close>Отмена</button><button class="btn" id="dokey">${icon('check')}<span>Активировать</span></button></div>`);
+        const inp = layer.querySelector('#key');
+        const err = layer.querySelector('#kerr');
+        inp.addEventListener('input', () => {
+          const s = inp.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 17);
+          inp.value = [s.slice(0, 5), s.slice(5, 9), s.slice(9, 13), s.slice(13)].filter(Boolean).join('-');
+          err.textContent = '';
+        });
+        inp.focus();
+        layer.querySelector('#dokey').addEventListener('click', async (e) => {
+          const btn = e.currentTarget;
+          btn.disabled = true;
+          try {
+            const r = await post('/key/activate', { key: inp.value });
+            setState(r.state); S = r.state;
+            layer.innerHTML = sheet(`<div class="res center">${resIco('ok', 'check')}<h2 class="res-t">Ключ активирован</h2>
+              <p class="res-d">Подписка продлена на ${r.days} ${plural(r.days, 'день', 'дня', 'дней')}</p></div>
+              <div class="field rows in">${kv('Подписка до', dmy(r.state.sub.until))}${kv('Осталось', `${r.state.sub.daysLeft} ${plural(r.state.sub.daysLeft, 'день', 'дня', 'дней')}`, 'ok')}</div>
+              <div class="btns one"><button class="btn" id="done">${icon('check')}<span>Готово</span></button></div>`);
+            layer.querySelector('#done').addEventListener('click', () => window.dispatchEvent(new HashChangeEvent('hashchange')));
+          } catch (er) {
+            btn.disabled = false;
+            const msg = { key_invalid: 'Неверный формат ключа', key_not_found: 'Такого ключа нет', key_used: 'Этот ключ уже использован', key_locked: 'Слишком много попыток — попробуй позже' };
+            err.textContent = er instanceof HttpError ? (msg[er.code] || 'Не удалось активировать ключ') : 'Нет связи, попробуй ещё раз';
+          }
+        });
+      });
       el.querySelector('#revoke')?.addEventListener('click', async () => {
         try { await post('/launch/revoke'); toast('Запущенные команды отключены'); } catch { toast('Не удалось отключить'); }
       });

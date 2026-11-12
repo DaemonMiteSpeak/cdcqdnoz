@@ -242,6 +242,66 @@ export function settleOrder(id, { by = 'auto' } = {}) {
   return res.o;
 }
 
+/* ---------- ключи активации: HIDER-XXXX-XXXX-XXXX ---------- */
+const KEY_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // без I, O, 0, 1
+const KEY_RE = /^HIDER-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/;
+
+export function generateKeyCode() {
+  const part = () => Array.from({ length: 4 }, () => KEY_ALPHABET[crypto.randomInt(KEY_ALPHABET.length)]).join('');
+  return `HIDER-${part()}-${part()}-${part()}`;
+}
+
+/** Приводит ввод пользователя (любой регистр, без дефисов, с пробелами) к каноничному виду или null. */
+export function normalizeKey(raw) {
+  const s = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (s.length !== 17 || !s.startsWith('HIDER')) return null;
+  const code = `HIDER-${s.slice(5, 9)}-${s.slice(9, 13)}-${s.slice(13)}`;
+  return KEY_RE.test(code) ? code : null;
+}
+
+export function createKeys(days, count = 1) {
+  if (!Number.isInteger(days) || days < 1 || days > 3650) throw new Error('bad_days');
+  const ins = db.prepare('INSERT INTO keys(code, days, created_at) VALUES(?,?,?)');
+  return tx(() => Array.from({ length: count }, () => {
+    for (;;) {
+      const code = generateKeyCode();
+      if (ins.run(code, days, Date.now()).changes) return code;
+    }
+  }));
+}
+
+const keyFails = new Map(); // userId -> { n, until }: защита от подбора
+const KEY_MAX_FAILS = 8;
+const KEY_LOCK_MS = 15 * 60000;
+
+export function activateKey(u, raw) {
+  const f = keyFails.get(u.id);
+  if (f && f.n >= KEY_MAX_FAILS && f.until > Date.now()) throw new ApiError(429, 'key_locked', { retryAt: f.until });
+  const code = normalizeKey(raw);
+  const fail = (status, err) => {
+    const cur = keyFails.get(u.id);
+    const n = cur && cur.until > Date.now() ? cur.n + 1 : 1;
+    keyFails.set(u.id, { n, until: Date.now() + KEY_LOCK_MS });
+    throw new ApiError(status, err);
+  };
+  if (!code) fail(400, 'key_invalid');
+  const res = tx(() => {
+    const k = db.prepare('SELECT * FROM keys WHERE code=?').get(code);
+    if (!k) return { err: [404, 'key_not_found'] };
+    if (k.used_by) return { err: [409, 'key_used'] };
+    const cur = getUser(u.id);
+    const until = Math.max(Date.now(), cur.sub_until) + k.days * DAY;
+    const total = Math.ceil((until - Date.now()) / DAY);
+    db.prepare('UPDATE keys SET used_by=?, used_at=? WHERE code=?').run(u.id, Date.now(), code);
+    db.prepare('UPDATE users SET sub_until=?, sub_total_days=? WHERE id=?').run(until, total, u.id);
+    return { days: k.days };
+  });
+  if (res.err) fail(...res.err);
+  keyFails.delete(u.id);
+  notify(u.id, `Ключ ${code} активирован\nПодписка продлена на ${res.days} дн.`);
+  return { user: getUser(u.id), days: res.days };
+}
+
 export function cancelOrder(u, id) {
   const o = orderFor(u, id);
   if (o.status !== 'pending') return o;

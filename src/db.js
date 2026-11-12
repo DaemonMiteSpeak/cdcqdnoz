@@ -85,6 +85,13 @@ CREATE TABLE IF NOT EXISTS withdrawals (
   note TEXT
 );
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
+CREATE TABLE IF NOT EXISTS keys (
+  code TEXT PRIMARY KEY,
+  days INTEGER NOT NULL,
+  created_at INTEGER NOT NULL,
+  used_by INTEGER REFERENCES users(id),
+  used_at INTEGER
+);
 `);
 const seq = db.prepare("SELECT seq FROM sqlite_sequence WHERE name='orders'").get();
 if (!seq) db.exec("INSERT INTO sqlite_sequence(name, seq) VALUES ('orders', 48212)");
