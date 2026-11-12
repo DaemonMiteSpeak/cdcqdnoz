@@ -1,0 +1,306 @@
+/* ---------- faq ---------- */
+
+.faq__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  column-gap: clamp(2rem, 5vw, 5rem);
+  row-gap: 2.5rem;
+}
+.faq__side {
+  position: sticky;
+  top: calc(var(--nav-h) + 2rem);
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+  max-width: 21rem;
+}
+.faq__side p {
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+.faq__handle {
+  color: var(--muted);
+}
+.qa {
+  border-top: 1px solid var(--rule);
+}
+.qa:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+.qa button {
+  display: grid;
+  grid-template-columns: 3.75rem minmax(0, 1fr) 2.6rem;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1.5rem 0;
+  text-align: left;
+}
+.qa button:focus-visible {
+  outline-offset: -2px;
+}
+.qa__idx {
+  color: var(--muted);
+}
+.qa__q {
+  font-size: clamp(1.25rem, 2.15vw, 1.9rem);
+  font-weight: 500;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
+  transition: transform 0.55s var(--ease-out);
+}
+.qa button:hover .qa__q {
+  transform: translateX(0.6rem);
+}
+.qa__icon {
+  position: relative;
+  width: 2.6rem;
+  height: 2.6rem;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  transition:
+    background-color 0.4s,
+    color 0.4s,
+    transform 0.7s var(--ease-out);
+}
+.qa__icon i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.9rem;
+  height: 1.5px;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+  transition: transform 0.6s var(--ease-out);
+}
+.qa__icon i:last-child {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+.qa.is-open .qa__icon {
+  background: var(--ink);
+  color: var(--paper);
+  transform: rotate(180deg);
+}
+.qa.is-open .qa__icon i:last-child {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+.qa__a {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.65s var(--ease-out);
+}
+.qa__a > div {
+  overflow: hidden;
+}
+.qa.is-open .qa__a {
+  grid-template-rows: 1fr;
+}
+.qa__a p {
+  max-width: 44rem;
+  padding: 0 3rem 1.9rem 4.25rem;
+  color: var(--muted);
+  font-size: 1.0625rem;
+  opacity: 0;
+  transform: translateY(-0.6rem);
+  transition:
+    opacity 0.35s,
+    transform 0.6s var(--ease-out);
+}
+.qa.is-open .qa__a p {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.12s;
+}
+
+/* ---------- final cta ---------- */
+
+.cta {
+  --bw: 112;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100svh;
+  padding: clamp(5rem, 9vw, 9rem) var(--gutter) clamp(4rem, 7vw, 7rem);
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+}
+.cta__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.cta__inner {
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2.5rem;
+}
+.cta__eyebrow {
+  display: flex;
+  gap: 1.5rem;
+}
+.cta__eyebrow span:first-child {
+  color: var(--signal);
+}
+.cta__title {
+  --wght: 760;
+  font-size: min(27vw, 27svh);
+  line-height: 0.84;
+}
+.cta__line {
+  display: block;
+  text-align: center;
+  white-space: nowrap;
+}
+.cta__line-i {
+  display: inline-block;
+}
+/* Variation settings are inherited as a computed value, so the accent line re-declares them. */
+.cta__line-i.is-accent {
+  --wdth: var(--bw);
+  --slnt: -10;
+  color: var(--signal);
+  font-variation-settings:
+    'wdth' var(--wdth),
+    'wght' var(--wght),
+    'slnt' var(--slnt),
+    'opsz' 144;
+}
+.cta__action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ---------- footer ---------- */
+
+.footer {
+  position: relative;
+  padding: clamp(3rem, 6vw, 5.5rem) var(--gutter) 1.5rem;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+}
+.footer__top {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) repeat(3, minmax(0, 2fr));
+  gap: 2.5rem var(--gap);
+}
+.footer__lead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+  max-width: 24rem;
+}
+.footer__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-variation-settings:
+    'wdth' 86,
+    'wght' 720;
+  letter-spacing: -0.015em;
+}
+.footer__lead p {
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+.footer__h {
+  margin-bottom: 1rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--rule);
+  font-weight: 500;
+}
+.footer ul {
+  display: grid;
+  gap: 0.55rem;
+}
+.footer ul a {
+  font-size: 1.0625rem;
+  font-weight: 500;
+}
+.fword {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: clamp(3rem, 7vw, 7rem);
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 20vw;
+  line-height: 0.78;
+  user-select: none;
+}
+.fword span {
+  font-variation-settings:
+    'wdth' 25,
+    'wght' 620,
+    'opsz' 144;
+  transition: font-variation-settings 0.45s var(--ease-out);
+}
+.fword.is-live span {
+  transition-duration: 0.2s;
+}
+@media (hover: none) {
+  .fword span {
+    animation: fword-breathe 4.5s ease-in-out infinite;
+    animation-delay: calc(var(--i) * -0.42s);
+  }
+}
+@keyframes fword-breathe {
+  50% {
+    font-variation-settings:
+      'wdth' 62,
+      'wght' 800,
+      'opsz' 144;
+  }
+}
+.footer__base {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+@media (max-width: 900px) {
+  .faq__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .faq__side {
+    position: static;
+  }
+  .qa button {
+    grid-template-columns: 2.75rem minmax(0, 1fr) 2.4rem;
+    padding: 1.2rem 0;
+  }
+  .qa__a p {
+    padding: 0 0 1.5rem 3.25rem;
+  }
+  .footer__top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .footer__lead {
+    grid-column: 1 / -1;
+  }
+  .footer__built {
+    display: none;
+  }
+}
+
+html[lang='ru'] .cta__title,
+html[lang='az'] .cta__title {
+  line-height: 0.95;
+}
