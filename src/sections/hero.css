@@ -1,0 +1,257 @@
+.hero {
+  --nav-px: 68;
+  --hero-cap: calc((100svh - 21.5rem) / 2.72);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  padding: calc(var(--nav-h) + 1.25rem) var(--gutter) 1.75rem;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.hero__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.hero__top,
+.hero__bottom,
+.hero__title {
+  position: relative;
+  z-index: 1;
+}
+
+.hero__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+.hero__tag {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.hero__aud {
+  color: var(--muted);
+}
+.hero__hud {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 15.5rem;
+  color: var(--muted);
+}
+.hero__hud-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--rule);
+  color: var(--fg);
+}
+.hero__hud-title i {
+  width: 0.45rem;
+  height: 0.45rem;
+  background: var(--signal);
+  animation: hero-blink 1.2s steps(2, jump-none) infinite;
+}
+.hero__hud-row b {
+  display: inline-block;
+  min-width: 3.4em;
+  font-weight: 600;
+  color: var(--fg);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.hero__hud-alert {
+  display: none;
+  color: var(--fg);
+}
+.hero__hud.is-blocked .hero__hud-alert {
+  display: block;
+}
+@keyframes hero-blink {
+  to {
+    opacity: 0.15;
+  }
+}
+
+.hero__title {
+  --wdth: 25;
+  --wght: 740;
+  margin-block: auto;
+  padding-block: 1.5rem;
+  font-size: var(--hero-cap);
+  line-height: 0.9;
+  pointer-events: none;
+}
+.hero__line {
+  display: block;
+  white-space: nowrap;
+}
+.hero__line:nth-child(2) {
+  margin-left: 9%;
+}
+.hero__line:nth-child(3) {
+  text-align: right;
+}
+.hero__line-i {
+  display: inline-block;
+}
+.hero__w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding: 0.14em 0 0.06em;
+  margin: -0.14em 0 -0.06em;
+}
+.hero__wi {
+  display: inline-block;
+  transform: translateY(118%);
+  transition: transform 1.15s var(--ease-out);
+  transition-delay: calc(var(--i) * 75ms + 120ms);
+}
+.hero.is-ready .hero__wi {
+  transform: none;
+}
+.hero__w--accent {
+  color: var(--signal);
+}
+.hero__anchor {
+  position: absolute;
+  right: 1.5%;
+  top: calc(1.5rem + 0.43em);
+  width: 1px;
+  height: 1px;
+}
+
+.hero__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+}
+.hero__intro {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.5rem, 3vw, 3rem);
+}
+.hero__sub {
+  max-width: 21rem;
+  font-size: 1.0625rem;
+  line-height: 1.4;
+}
+.hero__cta {
+  display: flex;
+  gap: 0.75rem;
+}
+.hero__cta .btn {
+  cursor: pointer;
+}
+.hero__hint {
+  color: var(--muted);
+  text-align: right;
+}
+.hero__hint-touch {
+  display: none;
+}
+
+.hero__top > *,
+.hero__sub,
+.hero__cta,
+.hero__hint {
+  opacity: 0;
+  transform: translateY(0.75rem);
+  transition:
+    opacity 0.9s var(--ease-out) 0.7s,
+    transform 0.9s var(--ease-out) 0.7s;
+}
+.hero.is-ready .hero__top > *,
+.hero.is-ready .hero__sub,
+.hero.is-ready .hero__cta,
+.hero.is-ready .hero__hint {
+  opacity: 1;
+  transform: none;
+}
+
+@media (hover: none) {
+  .hero__hint-mouse {
+    display: none;
+  }
+  .hero__hint-touch {
+    display: inline;
+  }
+}
+
+@media (max-width: 1100px) {
+  .hero__bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hero__hint {
+    text-align: left;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero {
+    --nav-px: 60;
+    --hero-cap: 13svh;
+    padding-bottom: 1.5rem;
+  }
+  .hero__line:nth-child(2) {
+    margin-left: 0;
+  }
+  .hero__line:nth-child(3) {
+    text-align: left;
+  }
+  .hero__anchor {
+    top: -1.25rem;
+    right: 6%;
+  }
+  .hero__hud {
+    display: none;
+  }
+  .hero__intro {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+    width: 100%;
+  }
+  .hero__cta {
+    flex-direction: column;
+    width: 100%;
+  }
+  .hero__cta .btn {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__wi {
+    transform: none;
+  }
+}
+
+/* Cyrillic and Azerbaijani capitals carry marks above the cap line, so they get more leading. */
+html[lang='ru'] .hero,
+html[lang='az'] .hero {
+  --hero-cap: calc((100svh - 21.5rem) / 2.96);
+}
+html[lang='ru'] .hero__title,
+html[lang='az'] .hero__title {
+  line-height: 0.98;
+}
+@media (max-width: 760px) {
+  html[lang='ru'] .hero,
+  html[lang='az'] .hero {
+    --hero-cap: 12svh;
+  }
+}
