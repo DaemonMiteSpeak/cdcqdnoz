@@ -51,6 +51,8 @@
   /* ---------- live layer ---------- */
   ui.insertAdjacentHTML('beforeend',
     '<div class="live-get" id="liveGet"><svg viewBox="0 0 12 12"><path d="M2 6.4 4.8 9 10 3.2"/></svg><span id="liveGetText">Ready</span></div>' +
+    '<div class="live-ava" id="liveAva"><img id="banAvatar" alt="" draggable="false"><span id="banLetter"></span></div>' +
+    '<div class="live-online" id="liveOnline"><i></i><span id="onlineText"></span></div>' +
     '<div class="live-ban" id="liveBan"><div class="nm"><span id="banName"></span><b id="banTag"></b></div><div class="dt" id="banDate"></div></div>' +
     '<div class="live-chip" id="liveChip" title="Copy address"><span id="chipText"></span><svg viewBox="0 0 12 12"><rect x="4" y="4" width="6.5" height="6.5" rx="1.4"/><path d="M8 2.6V2.3A.8.8 0 0 0 7.2 1.5H2.3A.8.8 0 0 0 1.5 2.3v4.9a.8.8 0 0 0 .8.8h.3"/></svg></div>' +
     '<div class="live-clients" id="liveClients"></div>' +
@@ -85,6 +87,21 @@
   function updateRing() { if (ringEl) ringEl.setAttribute('d', ringPath(ringFrac())); }
   setInterval(updateRing, 30000);
 
+  /* ---------- Telegram avatar (falls back to the first letter of the username) ---------- */
+  const avaImg = $('banAvatar');
+  const avaLetter = $('banLetter');
+  let avaSrc = '';
+  avaImg.addEventListener('error', () => { avaImg.style.display = 'none'; avaLetter.style.display = 'flex'; });
+  avaImg.addEventListener('load', () => { avaImg.style.display = 'block'; avaLetter.style.display = 'none'; });
+  function setAvatar(p) {
+    avaLetter.textContent = String(p.name || '?').charAt(0).toUpperCase();
+    if (p.avatar && /^https:\/\//.test(p.avatar)) {
+      if (avaSrc !== p.avatar) { avaSrc = p.avatar; avaImg.src = p.avatar; }
+    } else {
+      avaSrc = ''; avaImg.removeAttribute('src'); avaImg.style.display = 'none'; avaLetter.style.display = 'flex';
+    }
+  }
+
   /* ---------- render ---------- */
   function render() {
     app.classList.toggle('is-authed', !!st.authed);
@@ -100,6 +117,10 @@
 
     if (st.profile) {
       $('banName').textContent = st.profile.name;
+      setAvatar(st.profile);
+      const n = st.online | 0;
+      $('onlineText').textContent = n + ' online';
+      $('liveOnline').title = (st.onlineUsers || []).map((u) => u.name + (u.nick ? ' (' + u.nick + ')' : '')).join(', ');
       $('banTag').textContent = st.profile.tag || '';
       const from = st.profile.created ? dmy(st.profile.created) : dmy(Date.now());
       $('banDate').textContent = from + ' to ' + (st.profile.until ? dmy(st.profile.until) : 'lifetime');
@@ -220,8 +241,8 @@
     loginWin.classList.add('shake');
     setTimeout(() => loginWin.classList.remove('shake'), 420);
   }
-  const ERR = { hwid: 'This key is bound to another PC. Ask the admin to reset HWID', 'server-auth': 'Server identity check failed (fake server)', proto: 'Protocol error, update the app',
-    empty: 'Enter your username and activation key', invalid: 'Invalid username or activation key', network: 'Cannot reach the Hider server',
+  const ERR = { hwid: 'This account is bound to another PC. Reset HWID in the Telegram bot (Profile)', 'server-auth': 'Server identity check failed (fake server)', proto: 'Protocol error, update the app',
+    empty: 'Enter your Telegram username and license key', invalid: 'Invalid Telegram username or license key', expired: 'Your subscription has expired. Renew it in the Telegram bot', banned: 'This account is blocked', unavailable: 'Server is busy, try again in a moment', network: 'Cannot reach the Hider server',
     rate: 'Too many attempts, wait a minute', internal: 'Something went wrong'
   };
 
@@ -306,8 +327,8 @@
     try { init = await api.init(); } catch { init = { ok: false }; }
     user.value = (init && init.lastUser) || ls('user') || '';
     pass.value = '';
-    user.placeholder = 'Username';
-    pass.placeholder = 'Activation key';
+    user.placeholder = 'Telegram username';
+    pass.placeholder = 'License key';
     user.dispatchEvent(new Event('input'));
     pass.dispatchEvent(new Event('input'));
     if (init && init.ok) {
