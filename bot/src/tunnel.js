@@ -17,9 +17,13 @@ export async function startTunnel(port) {
   return new Promise((resolve, reject) => {
     // Свой конфиг нужен, если на хосте уже есть /etc/cloudflared/config.yml: его ingress перехватывает quick tunnel.
     const cfg = process.env.CLOUDFLARED_CONFIG ? ['--config', process.env.CLOUDFLARED_CONFIG] : [];
-    const p = spawn(BIN, ['tunnel', ...cfg, '--no-autoupdate', '--url', `http://localhost:${port}`], { stdio: ['ignore', 'pipe', 'pipe'] });
+    // QUIC (UDP) is blocked on some hosts (e.g. Jino): http2 over TCP works everywhere
+    const proto = ['--protocol', process.env.CLOUDFLARED_PROTOCOL || 'http2'];
+    const p = spawn(BIN, ['tunnel', ...cfg, '--no-autoupdate', ...proto, '--url', `http://127.0.0.1:${port}`], { stdio: ['ignore', 'pipe', 'pipe'] });
     const timer = setTimeout(() => reject(new Error('tunnel timeout')), 40000);
+    const logFile = process.env.CLOUDFLARED_LOG;
     const onData = (d) => {
+      if (logFile) { try { fs.appendFileSync(logFile, d); } catch { /* ignore */ } }
       const m = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(String(d));
       if (m) { clearTimeout(timer); resolve(m[0]); }
     };
