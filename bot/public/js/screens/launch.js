@@ -43,7 +43,7 @@ function view(A, st) {
     ${st.link ? `<section class="sec"><div class="sec-head"><div><span class="s-t">Прямая ссылка</span><span class="s-d">откройте в браузере — файл скачается · действует 6 часов</span></div></div>
       <div class="field dl-link"><code id="lnk">${esc(st.link)}</code></div>
       <div class="dl-actions"><button class="btn-sm" id="cplink" type="button">${icon('copy')}Копировать ссылку</button><button class="btn-sm" id="openlink" type="button">${icon('external')}Открыть в браузере</button></div>
-      <p class="dl-hint">Если файл начал скачиваться внутри Telegram — скопируйте ссылку и вставьте её в браузер.</p></section>` : ''}
+      <p class="dl-hint">Лучше всего: нажмите «Копировать ссылку» и вставьте её в адресную строку браузера. Если Telegram предложит скачать файл сам — откажитесь и используйте браузер.</p></section>` : ''}
     ${st.done ? `<p class="dl-hint ok">${esc(st.done)}</p>` : ''}
   </main>`;
 }
@@ -76,8 +76,9 @@ export default async function launch({ S }) {
       try {
         const t = await post('/download/ticket', { filename: st.name.trim() || 'Hider', randomSize: st.rand });
         st.link = t.url;
-        // handed to the system browser (not Telegram's built-in downloader)
-        openExternal(t.url);
+        // No auto-open: Telegram opens links in its own browser and offers to download the file itself.
+        // The user copies the link (or taps "open in browser") and downloads it outside Telegram.
+        toast('Ссылка готова — скопируйте и откройте в браузере');
         st.done = `${t.filename} · ${mb(t.size)}${t.extraBytes ? ` (+${mb(t.extraBytes)})` : ''}`;
       } catch (e) {
         const code = e instanceof HttpError ? e.code : '';

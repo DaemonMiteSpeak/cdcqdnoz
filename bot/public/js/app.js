@@ -14,7 +14,7 @@ const ROUTES = [
   [/^\/gate$/, () => import('./screens/gate.js')],
   [/^\/profile$/, () => import('./screens/profile.js')],
   [/^\/tags$/, () => import('./screens/tags.js')],
-  [/^\/launch$/, () => import('./screens/launch.js')],
+  [/^\/launch$/, () => import('./screens/launch.js?v=4')],
   [/^\/buy$/, () => import('./screens/buy.js')],
   [/^\/pay$/, () => import('./screens/pay.js')],
   [/^\/order\/(\d+)$/, () => import('./screens/order.js')],
