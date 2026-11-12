@@ -178,6 +178,17 @@ export function createServer(bot) {
     res.json({ id, state: S.stateFor(S.getUser(req.user.id)) });
   }));
 
+  // One-time cache reset per client: the page used to be served with a 1h cache, so clients may hold stale scripts.
+  // Bump CACHE_RESET to force every client to drop its cached copy on its next API call.
+  const CACHE_RESET = '5';
+  app.use('/api', (req, res, next) => {
+    if (!new RegExp(`(^|; )cv=${CACHE_RESET}(;|$)`).test(req.get('cookie') || '')) {
+      res.set('Clear-Site-Data', '"cache"');
+      res.append('Set-Cookie', `cv=${CACHE_RESET}; Max-Age=31536000; Path=/; Secure; SameSite=None`);
+    }
+    next();
+  });
+
   app.use('/api', api);
   app.use(express.static(path.join(ROOT, 'public'), { extensions: ['html'], maxAge: 0 }));
   app.use((req, res) => res.status(404).type('text/plain').send('Not found'));
