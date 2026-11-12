@@ -135,7 +135,9 @@ async function main() {
 
   const exe = path.join(root, 'dist', 'win-unpacked', 'Hider.exe');
   const { rcedit } = require('rcedit');
-  await rcedit(exe, {
+  // the freshly unpacked exe can still be locked by antivirus for a few seconds
+  const retry = async (fn) => { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= 5) throw e; await new Promise((r) => setTimeout(r, 4000)); } } };
+  await retry(() => rcedit(exe, {
     icon: path.join(root, 'build', 'icon.ico'),
     'version-string': {
       ProductName: 'Hider',
@@ -147,7 +149,7 @@ async function main() {
     },
     'file-version': pkg.version,
     'product-version': pkg.version,
-  });
+  }));
 
   // Harden the packaged binary: block run-as-Node, NODE_OPTIONS and --inspect so the decrypted
   // engine can't be dumped via a debugger or a plain node REPL, and only load app code from app.asar.
@@ -167,8 +169,9 @@ async function main() {
     });
     console.log('[build] Electron fuses set: RunAsNode/NodeOptions/NodeCliInspect off, OnlyLoadAppFromAsar on');
   }
-  run(`npx electron-builder --config ${GENERATED_CONFIG} --prepackaged dist/win-unpacked --win nsis portable --x64`);
+  if (process.argv.includes("--installer")) run(`npx electron-builder --config ${GENERATED_CONFIG} --prepackaged dist/win-unpacked --win nsis --x64`);
   fs.rmSync(path.join(root, GENERATED_CONFIG), { force: true });
+  await require("./sfx/make-sfx").make(root, pkg.version);
   if (AOT) fs.rmSync(path.join(root, AOT_DIR), { recursive: true, force: true });
   else fs.rmSync(path.join(root, 'src', 'engine.bin'), { force: true });
 }
