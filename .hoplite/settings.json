@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "scripts": {
+    "setup": "npm install --no-audit --no-fund",
+    "run": "TUNNEL=1 PORT=${PORT:-3000} node --disable-warning=ExperimentalWarning src/index.js"
+  },
+  "ports": { "preview": 3000 }
+}
