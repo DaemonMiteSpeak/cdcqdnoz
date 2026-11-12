@@ -1,0 +1,271 @@
+.pricing__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: clamp(1rem, 2vw, 2rem);
+  padding-top: 2rem;
+}
+
+.ticket {
+  --lift: 0rem;
+  --turn: 0deg;
+  position: relative;
+  opacity: 0;
+  transform: translateY(4rem) rotate(calc(var(--turn) + 4deg));
+  transition:
+    opacity 0.7s,
+    transform 1.1s var(--ease-out);
+  transition-delay: calc(var(--i) * 110ms);
+}
+.ticket.is-in {
+  opacity: 1;
+  transform: translateY(var(--lift)) rotate(var(--turn));
+}
+.ticket.is-popular {
+  --lift: -1.75rem;
+  --turn: -1.3deg;
+  z-index: 1;
+}
+.ticket[data-theme='paper'] {
+  --bg: var(--paper-3);
+}
+.ticket__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: var(--bg);
+  color: var(--fg);
+  transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition:
+    transform 0.5s var(--ease-out),
+    box-shadow 0.4s;
+}
+.ticket.is-selected .ticket__inner {
+  box-shadow:
+    0 0 0 3px var(--paper-2),
+    0 0 0 5px var(--ink);
+}
+
+.ticket__stub {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--muted);
+}
+.ticket__punch {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  transition:
+    background-color 0.3s,
+    transform 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.ticket.is-selected .ticket__punch {
+  background: var(--paper-2);
+  box-shadow: none;
+  transform: scale(1.15);
+}
+.ticket__stamp {
+  position: absolute;
+  right: 1.25rem;
+  top: 3.6rem;
+  padding: 0.35rem 0.6rem;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  font-weight: 600;
+  transform: rotate(6deg);
+}
+.ticket__name {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.ticket__price {
+  --wdth: 32;
+  --wght: 820;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.07em;
+  margin-top: 0.7rem;
+  font-size: clamp(5.25rem, 10vw, 10rem);
+  line-height: 0.8;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  transition: font-variation-settings 0.6s var(--ease-out);
+}
+.ticket__cur {
+  font-size: 0.42em;
+  line-height: 1;
+  font-variation-settings:
+    'wdth' 70,
+    'wght' 700;
+}
+@media (hover: hover) {
+  .ticket:hover .ticket__price {
+    --wdth: 44;
+  }
+}
+.ticket__perday {
+  margin-top: 0.8rem;
+  color: var(--muted);
+}
+.ticket__days {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: 3px;
+  margin-top: 1.4rem;
+}
+.ticket__days i {
+  height: 0.85rem;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  transition: background-color 0.3s;
+  transition-delay: calc(var(--d) * 26ms + 0.5s);
+}
+.ticket.is-in .ticket__days i {
+  background: var(--fg);
+}
+@media (hover: hover) {
+  .ticket:hover .ticket__days i {
+    animation: ticket-day 0.7s var(--ease-out) calc(var(--d) * 22ms);
+  }
+}
+@keyframes ticket-day {
+  40% {
+    transform: scaleY(0.25);
+  }
+}
+.ticket__span {
+  margin-top: 0.5rem;
+}
+.ticket__perf {
+  position: relative;
+  margin: 1.4rem -1.5rem 1.5rem;
+  border-top: 2px dashed var(--rule);
+}
+.ticket__perf::before,
+.ticket__perf::after {
+  content: '';
+  position: absolute;
+  top: -0.75rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--paper-2);
+}
+.ticket__perf::before {
+  left: -0.7rem;
+}
+.ticket__perf::after {
+  right: -0.7rem;
+}
+.ticket__list {
+  flex: 1;
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+  margin-bottom: 1.75rem;
+}
+.ticket__list li {
+  display: grid;
+  grid-template-columns: 0.8rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.7rem;
+  line-height: 1.3;
+}
+.ticket__list svg {
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-top: 0.3em;
+}
+.ticket .btn {
+  width: 100%;
+  justify-content: space-between;
+}
+.ticket__code {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.1rem;
+  color: var(--muted);
+}
+.ticket__barcode {
+  flex: 1;
+  height: 1.3rem;
+  opacity: 0.75;
+  background: repeating-linear-gradient(
+    90deg,
+    currentColor 0 2px,
+    transparent 2px 5px,
+    currentColor 5px 6px,
+    transparent 6px 9px,
+    currentColor 9px 12px,
+    transparent 12px 14px
+  );
+}
+
+.pricing__after {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.6s var(--ease-out);
+}
+.pricing__after.is-on {
+  grid-template-rows: 1fr;
+}
+.pricing__after > * {
+  overflow: hidden;
+}
+.pricing__after-in {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem 2rem;
+  margin-top: 2rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--ink);
+  color: var(--paper);
+  --fg: var(--paper);
+  --bg: var(--ink);
+  animation: fade-up 0.5s var(--ease-out) both;
+}
+.pricing__after-cta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.pricing__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem 2rem;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+.pricing__cur {
+  color: var(--muted);
+}
+
+@media (max-width: 1000px) {
+  .pricing__grid {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 30rem;
+    margin-inline: auto;
+    gap: 1.5rem;
+  }
+  .ticket.is-popular {
+    --lift: 0rem;
+    --turn: -1deg;
+  }
+}
+
+/* Martian Mono has no manat sign; borrow it from the text face. */
+.manat {
+  font-family: var(--font-body);
+  font-size: 1.25em;
+  line-height: 0;
+  text-transform: none;
+}
