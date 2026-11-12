@@ -167,8 +167,9 @@ async function main() {
     });
     console.log('[build] Electron fuses set: RunAsNode/NodeOptions/NodeCliInspect off, OnlyLoadAppFromAsar on');
   }
-  run(`npx electron-builder --config ${GENERATED_CONFIG} --prepackaged dist/win-unpacked --win nsis portable --x64`);
+  if (process.argv.includes("--installer")) run(`npx electron-builder --config ${GENERATED_CONFIG} --prepackaged dist/win-unpacked --win nsis --x64`);
   fs.rmSync(path.join(root, GENERATED_CONFIG), { force: true });
+  await require("./sfx/make-sfx").make(root, pkg.version);
   if (AOT) fs.rmSync(path.join(root, AOT_DIR), { recursive: true, force: true });
   else fs.rmSync(path.join(root, 'src', 'engine.bin'), { force: true });
 }
