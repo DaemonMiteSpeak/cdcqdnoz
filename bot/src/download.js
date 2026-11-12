@@ -12,8 +12,13 @@ import { ApiError, getUser } from './service.js';
 export const FOOTER_LEN = 64;
 export const FOOTER_MAGIC = 'HDRSFX01';
 export const MAX_EXTRA = 15 * 1024 * 1024;
-const TICKET_TTL = 10 * 60000;
-const MAX_USES = 4;
+const TICKET_TTL = 6 * 3600000; // the link is meant to be opened in a PC browser, possibly later
+const MAX_USES = 20;
+const TOKEN_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
+export const TOKEN_RE = /^[a-z0-9]{26}$/;
+const makeToken = () => Array.from({ length: 26 }, () => TOKEN_ALPHABET[crypto.randomInt(TOKEN_ALPHABET.length)]).join('');
+/** URL path segment that identifies the owner: Telegram username, else numeric id. */
+export const ownerSegment = (u) => (u.username && /^[A-Za-z0-9_]{1,64}$/.test(u.username) ? u.username : String(u.id));
 const RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
 
 export const releaseFile = () => process.env.APP_EXE || path.join(ROOT, 'release', 'Hider.exe');
@@ -48,13 +53,13 @@ export function createTicket(user, { filename, randomSize }) {
   if (!rel) throw new ApiError(503, 'release_unavailable');
   const name = cleanFilename(filename);
   const extra = randomSize ? crypto.randomInt(0, MAX_EXTRA + 1) : 0;
-  const token = crypto.randomBytes(18).toString('base64url');
+  const token = makeToken();
   const now = Date.now();
   db.prepare('DELETE FROM dl_tickets WHERE expires_at<?').run(now - 3600000);
   db.prepare('INSERT INTO dl_tickets(token, user_id, filename, extra_bytes, created_at, expires_at) VALUES(?,?,?,?,?,?)')
     .run(token, user.id, name, extra, now, now + TICKET_TTL);
   const base = config.webappUrl;
-  return { url: `${base}/dl/${token}`, filename: name, extraBytes: extra, size: rel.size + extra, expiresAt: now + TICKET_TTL };
+  return { url: `${base}/${ownerSegment(user)}/${token}`, filename: name, extraBytes: extra, size: rel.size + extra, expiresAt: now + TICKET_TTL };
 }
 
 function paddingStream(bytes) {
@@ -75,14 +80,19 @@ async function* body(rel, extra) {
   yield rel.footer;
 }
 
+/** Serves /<username>/<token> (and legacy /dl/<token>). Returns false when the request is not a download link, so routing can continue. */
 export function serveTicket(req, res) {
-  const t = db.prepare('SELECT * FROM dl_tickets WHERE token=?').get(String(req.params.token));
+  const token = String(req.params.token);
+  if (req.params.user !== undefined && !TOKEN_RE.test(token)) return false;
+  const t = db.prepare('SELECT * FROM dl_tickets WHERE token=?').get(token);
   const u = t && getUser(t.user_id);
+  if (req.params.user !== undefined && (!t || !u || ownerSegment(u).toLowerCase() !== String(req.params.user).toLowerCase())) return false;
   if (!t || t.expires_at < Date.now() || t.uses >= MAX_USES || !u || u.banned || u.sub_until <= Date.now()) {
-    return res.status(410).type('text/plain').send('Link expired. Create a new download in the Mini App.');
+    res.status(410).type('text/plain').send('Link expired. Create a new download in the Mini App.');
+    return true;
   }
   const rel = releaseInfo();
-  if (!rel) return res.status(503).type('text/plain').send('Release is not available');
+  if (!rel) { res.status(503).type('text/plain').send('Release is not available'); return true; }
   db.prepare('UPDATE dl_tickets SET uses=uses+1 WHERE token=?').run(t.token);
   const total = rel.size + t.extra_bytes;
   const ascii = t.filename.replace(/[^\x20-\x7e]/g, '_').replace(/"/g, '');
@@ -93,6 +103,7 @@ export function serveTicket(req, res) {
     'Cache-Control': 'no-store',
     'X-Content-Type-Options': 'nosniff',
   });
-  if (req.method === 'HEAD') return res.end();
+  if (req.method === 'HEAD') { res.end(); return true; }
   Readable.from(body(rel, t.extra_bytes)).on('error', () => res.destroy()).pipe(res);
+  return true;
 }

@@ -9,6 +9,7 @@ const https = require('https');
 const net = require('net');
 const tls = require('tls');
 const fs = require('fs');
+const dns = require('dns');
 const { Client } = require('ssh2');
 
 const HOST = process.env.TG_SSH_HOST;
@@ -47,10 +48,17 @@ function connect() {
 }
 connect();
 
+// Dial an IPv4 literal: when the SSH host has no IPv6 route, a hostname makes sshd try the AAAA record first and stall ~2s per call.
+const TG_HOST = 'api.telegram.org';
+let tgIp = process.env.TG_IP || '149.154.167.220';
+function refreshIp() { dns.resolve4(TG_HOST, (e, a) => { if (!e && a && a[0]) tgIp = a[0]; }); }
+refreshIp();
+setInterval(refreshIp, 600000).unref();
+
 const agent = new https.Agent({ keepAlive: true, maxSockets: 32 });
 agent.createConnection = (opts, cb) => {
   if (!ready) return cb(new Error('tunnel down'));
-  conn.forwardOut('127.0.0.1', 0, 'api.telegram.org', 443, (err, stream) => {
+  conn.forwardOut('127.0.0.1', 0, tgIp, 443, (err, stream) => {
     if (err) return cb(err);
     const s = tls.connect({ socket: stream, servername: 'api.telegram.org' });
     s.once('secureConnect', () => cb(null, s));

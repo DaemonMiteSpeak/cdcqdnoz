@@ -194,3 +194,6 @@ s.dim{color:var(--color-text-4);font-weight:500}.row .v.bad{color:#FF6B6E}
 .btn.busy{opacity:.7;pointer-events:none}.btn[disabled]{opacity:.45}
 .dl .note.warnbox b{font-size:12.5px}
 @media (max-width:340px){.dl-cred .row{flex-wrap:wrap}.dl-cred .k{width:100%}}
+
+.dl-link{padding:12px 13px}.dl-link code{font:12px/18px var(--font-mono);color:var(--color-text-2);word-break:break-all;display:block}
+.dl-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.dl-actions .btn-sm{flex:1;justify-content:center;min-width:140px}

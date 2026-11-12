@@ -39,8 +39,13 @@ export function createServer(bot) {
   app.disable('x-powered-by');
   app.use(express.json({ limit: '32kb' }));
 
-  app.get('/dl/:token', wrap(async (req, res) => serveTicket(req, res)));
-  app.head('/dl/:token', wrap(async (req, res) => serveTicket(req, res)));
+  // legacy link form
+  app.get('/dl/:token', wrap(async (req, res) => { serveTicket(req, res); }));
+  app.head('/dl/:token', wrap(async (req, res) => { serveTicket(req, res); }));
+  // direct link: /<username>/<26-char token>; anything that is not a valid download falls through to the static files
+  const direct = wrap(async (req, res, next) => { if (!serveTicket(req, res)) next(); });
+  app.get('/:user/:token', direct);
+  app.head('/:user/:token', direct);
 
   app.get('/avatar/:file', (req, res) => {
     const m = /^(\d+)\.([0-9a-f]{12})\.jpg$/.exec(req.params.file);

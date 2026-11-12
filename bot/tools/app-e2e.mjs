@@ -34,6 +34,17 @@ ok(r.s === 200 && r.j.active === false && r.j.licenseKey === null, 'no subscript
 r = await call(W, 'POST', '/download/ticket', { filename: 'x' }, 'TgNoSub');
 ok(r.s === 403 && r.j.error === 'sub_required', 'download needs a subscription');
 
+// ---- direct link: /<username>/<26 chars>
+r = await call(U, 'POST', '/download/ticket', { filename: 'x' }, 'TgAlice');
+ok(/^https?:\/\/[^/]+\/TgAlice\/[a-z0-9]{26}$/.test(r.j.url), 'direct link has the form /<username>/<26-char token>: ' + r.j.url.replace(/^https?:\/\/[^/]+/, ''));
+const tok = r.j.url.split('/').pop();
+let wrong = await fetch(`${BASE}/SomeoneElse/${tok}`);
+ok(wrong.status === 404, 'token under a different username -> 404');
+wrong = await fetch(`${BASE}/tgalice/${tok}`, { method: 'HEAD' });
+ok(wrong.status === 200 && /attachment/.test(wrong.headers.get('content-disposition') || ''), 'username is case-insensitive, link forces a download');
+ok((await fetch(`${BASE}/js/app.js`)).status === 200 && (await fetch(`${BASE}/css/app.css`)).status === 200, 'static files are not shadowed by the /<user>/<token> route');
+ok((await fetch(`${BASE}/TgAlice/${'z'.repeat(26)}`)).status === 404, 'well-formed but unknown token -> 404');
+
 // ---- download: filename + random size
 const base = fs.statSync(process.env.APP_EXE).size;
 r = await call(U, 'POST', '/download/ticket', { filename: 'My Tool', randomSize: false }, 'TgAlice');

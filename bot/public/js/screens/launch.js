@@ -40,6 +40,9 @@ function view(A, st) {
       ${A.username ? '' : '<p class="dl-hint">Без username можно войти по своему Telegram ID — он указан в профиле</p>'}
     </section>
     <button class="btn ${st.busy ? 'busy' : ''}" id="get" ${rel && !st.busy ? '' : 'disabled'}>${icon('download')}<span>${st.busy ? 'Готовим файл…' : 'Скачать EXE'}</span></button>
+    ${st.link ? `<section class="sec"><div class="sec-head"><div><span class="s-t">Прямая ссылка</span><span class="s-d">откроется в браузере и скачает файл · действует 6 часов</span></div></div>
+      <div class="field dl-link"><code id="lnk">${esc(st.link)}</code></div>
+      <div class="dl-actions"><button class="btn-sm" id="cplink" type="button">${icon('copy')}Копировать ссылку</button><button class="btn-sm" id="openlink" type="button">${icon('external')}Открыть в браузере</button></div></section>` : ''}
     ${st.done ? `<p class="dl-hint ok">${esc(st.done)}</p>` : ''}
   </main>`;
 }
@@ -47,7 +50,7 @@ function view(A, st) {
 export default async function launch({ S }) {
   if (!S.sub.active) { go('/buy', { replace: true }); return { html: '', mount() {} }; }
   const A = await get('/app');
-  const st = { name: LS.get('hider.dl.name', 'Hider'), rand: LS.get('hider.dl.rand', '0') === '1', busy: false, done: '', err: false };
+  const st = { name: LS.get('hider.dl.name', 'Hider'), rand: LS.get('hider.dl.rand', '0') === '1', busy: false, done: '', err: false, link: '' };
   const paint = (root, keepFocus) => {
     root.innerHTML = view(A, st);
     const input = root.querySelector('#fname');
@@ -60,13 +63,20 @@ export default async function launch({ S }) {
       }
       toast('Ключ скопирован');
     });
+    const copyText = async (text) => {
+      try { await navigator.clipboard.writeText(text); } catch {
+        const ta = document.createElement('textarea'); ta.value = text; document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove();
+      }
+    };
+    root.querySelector('#cplink')?.addEventListener('click', async () => { await copyText(st.link); toast('Ссылка скопирована'); });
+    root.querySelector('#openlink')?.addEventListener('click', () => openLink(st.link));
     root.querySelector('#get').addEventListener('click', async () => {
       st.busy = true; st.done = ''; paint(root);
       try {
         const t = await post('/download/ticket', { filename: st.name.trim() || 'Hider', randomSize: st.rand });
-        const tg = window.Telegram?.WebApp;
-        if (tg?.downloadFile && tg.isVersionAtLeast?.('8.0')) tg.downloadFile({ url: t.url, file_name: t.filename });
-        else openLink(t.url);
+        st.link = t.url;
+        // opened in the system browser (not Telegram's built-in downloader)
+        openLink(t.url);
         st.done = `${t.filename} · ${mb(t.size)}${t.extraBytes ? ` (+${mb(t.extraBytes)})` : ''}`;
       } catch (e) {
         const code = e instanceof HttpError ? e.code : '';
