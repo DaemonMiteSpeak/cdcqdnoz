@@ -109,3 +109,11 @@
 .window.app.is-ph-ready:has(.app-role:active) [data-i="16"] { opacity: 1; filter: brightness(.92); }
 .window.app.is-ph-ready .app-role, .window.app.is-ph-ready .app-ban { cursor: pointer; }
 [data-i="20"] g[opacity] { transition: opacity .24s ease; }
+
+/* Telegram avatar inside the profile ring + online-users pill */
+.live-ava { position: absolute; left: 272.5px; top: 66px; width: 31px; height: 31px; border-radius: 50%; overflow: hidden; background: #2A1517; pointer-events: none; z-index: 2; }
+.live-ava img { width: 100%; height: 100%; object-fit: cover; display: none; }
+.live-ava span { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font: 600 13px "Inter", "Segoe UI", Arial, sans-serif; color: #FFE3E3; background: linear-gradient(135deg, #7A2226, #3A1214); }
+.window.app:not(.is-authed) .live-ava, .window.app:not(.is-authed) .live-online { display: none; }
+.live-online { position: absolute; left: 488px; top: 86px; display: flex; align-items: center; gap: 5px; height: 12px; font: 500 9px/12px "Inter", "Segoe UI", Arial, sans-serif; color: #9A9A9A; white-space: nowrap; }
+.live-online i { width: 5px; height: 5px; border-radius: 50%; background: #62D889; box-shadow: 0 0 6px rgba(98,216,137,.7); }
