@@ -1,0 +1,42 @@
+/* desktop build: the 1920x1080 artboard collapses to the window itself */
+
+html.native,
+html.native body,
+.native .fit,
+.native .stage {
+  background: transparent;
+}
+
+.native .stage {
+  transform: translate(-712px, -340px) !important;
+}
+
+.native .world,
+.native .noise,
+.native .restore {
+  display: none !important;
+}
+
+/* dragging the frameless window by its title bar */
+.native .titlebar,
+.native .app-ui::before {
+  -webkit-app-region: drag;
+}
+
+.native .app-ui::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 49px;
+}
+
+.native button,
+.native input,
+.native .field-hit,
+.native .app-hit,
+.native .app-tab,
+.native .app-versions {
+  -webkit-app-region: no-drag;
+}
