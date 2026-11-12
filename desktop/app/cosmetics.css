@@ -1,0 +1,168 @@
+/* cosmetics panel (opens from the hanger icon in the title bar) */
+.cos-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 49px;
+  bottom: 0;
+  z-index: 50;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 22px 10px;
+  overflow: hidden;
+  background: rgba(15, 15, 15, .82);
+  -webkit-backdrop-filter: blur(0px);
+  backdrop-filter: blur(0px);
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  visibility: hidden;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  color: #D9D9D9;
+  transition: opacity .28s ease, transform .4s var(--ease), backdrop-filter .4s var(--ease), -webkit-backdrop-filter .4s var(--ease), visibility 0s .4s;
+}
+
+.window.app.is-cos .cos-panel {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  visibility: visible;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  transition-delay: 0s;
+}
+
+.cos-head { flex: none; display: flex; align-items: center; gap: 12px; height: 24px; margin-bottom: 6px; }
+.cos-title { flex: none; }
+.cos-actions { flex: none; }
+.cos-title { font-size: 15px; font-weight: 600; letter-spacing: .1px; color: #FFFFFF; }
+
+.cos-clear {
+  height: 24px;
+  padding: 0 11px;
+  font: 500 11.5px/22px "Inter", "Segoe UI", Arial, sans-serif;
+  color: #9A9A9A;
+  background: #1E1E1E;
+  border: 1px solid #2A2A2A;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: color .2s ease, border-color .2s ease, background-color .2s ease, opacity .2s ease;
+}
+.cos-clear:hover:not(:disabled) { color: #FFFFFF; border-color: #EF393C; background: rgba(239, 57, 60, .14); }
+.cos-clear:disabled { opacity: .4; cursor: default; }
+.cos-clear:focus-visible, .cos-chip:focus-visible, .cos-tab:focus-visible, .cos-card:focus-visible { outline: 2px solid rgba(239, 57, 60, .6); outline-offset: 2px; }
+
+/* equipped chips: one line, scrolls sideways instead of wrapping so the layout never jumps */
+.cos-chips {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 24px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.cos-chips::-webkit-scrollbar { display: none; }
+.cos-none { font-size: 11.5px; color: #5E5E5E; }
+.cos-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px 0 10px;
+  font: 500 11px/22px "Inter", "Segoe UI", Arial, sans-serif;
+  color: #D9D9D9;
+  background: rgba(239, 57, 60, .12);
+  border: 1px solid rgba(239, 57, 60, .45);
+  border-radius: 12px;
+  cursor: pointer;
+  animation: cos-pop .32s var(--ease) both;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+.cos-chip span { color: #8E8E8E; font-weight: 400; }
+.cos-chip b { font-weight: 500; color: #FFFFFF; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cos-chip i { position: relative; width: 10px; height: 10px; opacity: .6; transition: opacity .2s ease; }
+.cos-chip i::before, .cos-chip i::after { content: ""; position: absolute; left: 4px; top: 0; width: 1.5px; height: 10px; border-radius: 1px; background: #FFFFFF; transform: rotate(45deg); }
+.cos-chip i::after { transform: rotate(-45deg); }
+.cos-chip:hover { background: rgba(239, 57, 60, .22); border-color: #EF393C; }
+.cos-chip:hover i { opacity: 1; }
+@keyframes cos-pop { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
+
+.cos-tabs { flex: none; display: flex; gap: 4px; margin-bottom: 6px; border-bottom: 1px solid rgba(255, 255, 255, .06); }
+.cos-tab {
+  position: relative;
+  height: 28px;
+  padding: 0 11px;
+  font: 500 12px/28px "Inter", "Segoe UI", Arial, sans-serif;
+  color: #6C6C6C;
+  background: none;
+  border: 0;
+  border-radius: 7px 7px 0 0;
+  cursor: pointer;
+  transition: color .2s ease;
+}
+.cos-tab::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; border-radius: 2px; background: #EF393C; transform: scaleX(0); transition: transform .3s var(--ease); }
+.cos-tab:hover:not(:disabled) { color: #D9D9D9; }
+.cos-tab.is-on { color: #FFFFFF; }
+.cos-tab.is-on::after { transform: scaleX(1); }
+.cos-tab:disabled { opacity: .35; cursor: default; }
+.cos-tab i { display: inline-block; width: 5px; height: 5px; margin: 0 0 2px 6px; border-radius: 50%; background: #EF393C; vertical-align: middle; }
+
+.cos-grid {
+  flex: 1 1 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 96px;
+  gap: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2px 4px 2px 2px;
+  margin: -2px -4px -2px -2px;
+  scrollbar-width: thin;
+  scrollbar-color: #3A3A3A transparent;
+}
+.cos-grid::-webkit-scrollbar { width: 6px; }
+.cos-grid::-webkit-scrollbar-track { background: transparent; }
+.cos-grid::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+.cos-grid::-webkit-scrollbar-thumb:hover { background: #4A4A4A; }
+
+.cos-card {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  min-width: 0;
+  padding: 7px 7px 6px;
+  text-align: left;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  background: #181818;
+  border: 1px solid #262626;
+  border-radius: 10px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .35s ease, transform .45s var(--ease), border-color .2s ease, background-color .2s ease;
+}
+.window.app.is-cos .cos-card { opacity: 1; transform: none; transition-delay: calc(var(--n, 0) * 40ms + 60ms), calc(var(--n, 0) * 40ms + 60ms), 0s, 0s; }
+.cos-card:hover { border-color: #3A3A3A; background: #1D1D1D; }
+.cos-card.is-on { border-color: #EF393C; background: rgba(239, 57, 60, .1); box-shadow: 0 0 0 1px rgba(239, 57, 60, .25); }
+.cos-thumb { flex: 1 1 0; min-height: 0; display: grid; place-items: center; border-radius: 7px; background: #121212; overflow: hidden; }
+.cos-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; image-rendering: auto; pointer-events: none; user-select: none; }
+.cos-name { flex: none; font-size: 12px; font-weight: 500; line-height: 16px; color: #E6E6E6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cos-state { flex: none; font-size: 10.5px; line-height: 12px; color: #5E5E5E; }
+.cos-card.is-on .cos-state { color: #EF393C; }
+.cos-check { position: absolute; right: 10px; top: 10px; width: 16px; height: 16px; border-radius: 50%; background: #EF393C; opacity: 0; transform: scale(.5); transition: opacity .2s ease, transform .3s var(--ease); }
+.cos-check::after { content: ""; position: absolute; left: 5px; top: 3px; width: 4px; height: 7px; border: solid #FFFFFF; border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); }
+.cos-card.is-on .cos-check { opacity: 1; transform: none; }
+.cos-empty { grid-column: 1 / -1; padding: 28px 0; text-align: center; font-size: 12px; color: #5E5E5E; }
+
+.cos-actions { display: flex; align-items: center; gap: 6px; }
+.cos-clear.cos-self.is-on { color: #FFFFFF; border-color: #EF393C; background: rgba(239, 57, 60, .22); }
