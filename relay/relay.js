@@ -5,6 +5,7 @@
 //    app's WebSocket, so the real game server only ever sees the user's own PC, never this VPS.
 //  - Per-user logs are persisted in data/logs/<user>.jsonl.
 const https = require('https');
+const http = require('http');
 const net = require('net');
 const fs = require('fs');
 const path = require('path');
@@ -28,6 +29,7 @@ const CFG = Object.assign({
   revalidateMs: 300000,    // re-check every logged-in app against users.json (expiry/revocation)
   hwidStrict: true,
   versions: ['26.2', '26.1', '1.21.11', '1.21.8', '1.21.4', '1.16.5'],
+  authUrl: '',              // bot backend (loopback) that owns accounts, licenses and HWID bindings; empty = local users.json
   labelTag: 'wtf',          // text of the in-game "[tag]" shown in front of Hider users
   debugLabelAll: true       // DEBUG: also label every non-Hider player so the feature can be verified
 }, readJson(path.join(DATA, 'config.json'), {}));
@@ -88,7 +90,30 @@ function checkUser(name, key) {
   if (ok && u.until && u.until < Date.now()) return null;
   return ok ? u : null;
 }
-function profile(u) { return { name: u.name, tag: u.tag || 'user', until: u.until || 0, created: u.created || 0 }; }
+function profile(u) {
+  return { id: u.id || 0, name: u.name, firstName: u.firstName || '', tag: u.tag || 'user', tagColor: u.tagColor || '', avatar: u.avatar || '', until: u.until || 0, created: u.created || 0 };
+}
+
+/* ---------- unified accounts: credentials, subscription and HWID live in the bot database ---------- */
+const AUTH_SECRET = process.env.HIDER_AUTH_SECRET || (() => { try { return fs.readFileSync(path.join(DATA, 'auth.secret'), 'utf8').trim(); } catch { return ''; } })();
+const REMOTE = !!(CFG.authUrl && AUTH_SECRET);
+function authCall(p, body) {
+  return new Promise((resolve) => {
+    let u; try { u = new URL(CFG.authUrl + p); } catch { return resolve({ ok: false, error: 'auth_unavailable' }); }
+    const data = JSON.stringify(body);
+    const req = http.request({ hostname: u.hostname, port: u.port, path: u.pathname, method: 'POST', timeout: 5000,
+      headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data), 'x-relay-secret': AUTH_SECRET } }, (res) => {
+      let b = '';
+      res.on('data', (d) => { b += d; if (b.length > 65536) req.destroy(); });
+      res.on('end', () => { try { resolve(JSON.parse(b)); } catch { resolve({ ok: false, error: 'auth_unavailable' }); } });
+    });
+    req.on('timeout', () => req.destroy());
+    req.on('error', () => resolve({ ok: false, error: 'auth_unavailable' }));
+    req.end(data);
+  });
+}
+const REASONS = { invalid_credentials: 'invalid', too_many_attempts: 'rate', hwid_mismatch: 'hwid', hwid_required: 'hwid', expired: 'expired', banned: 'banned', revoked: 'invalid', deleted: 'invalid', auth_unavailable: 'unavailable' };
+const authReason = (e) => REASONS[e] || 'invalid';
 function bindOrCheckHwid(user, hwid) {
   const users = loadUsers();
   const k = user.name.toLowerCase();
@@ -101,8 +126,17 @@ function bindOrCheckHwid(user, hwid) {
 function b64u(b) { return Buffer.from(b).toString('base64url'); }
 function makeToken(user) {
   const ttlMs = CFG.tokenTtlHours > 0 ? CFG.tokenTtlHours * 3600e3 : CFG.tokenTtlDays * 864e5;
-  const body = b64u(JSON.stringify({ u: user.name, exp: Date.now() + ttlMs, tv: user.tv || 0 }));
+  const body = b64u(JSON.stringify({ u: user.name, i: user.id || 0, exp: Date.now() + ttlMs, tv: user.tv || 0 }));
   return body + '.' + crypto.createHmac('sha256', SECRET).update(body).digest('base64url');
+}
+function parseToken(tok) {
+  try {
+    const [body, sig] = String(tok).split('.');
+    const exp = crypto.createHmac('sha256', SECRET).update(body).digest('base64url');
+    if (sig.length !== exp.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(exp))) return null;
+    const p = JSON.parse(Buffer.from(body, 'base64url').toString());
+    return p.exp < Date.now() ? null : p;
+  } catch { return null; }
 }
 function verifyToken(tok) {
   try {
@@ -295,7 +329,7 @@ function schedulePresence() {
 function broadcastPresence() {
   const live = [...apps.values()].filter(w => w.readyState === 1);
   const users = live.filter(w => w._visible && w._ident && w._ident.nick).map(w => ({
-    name: w._user.name, tag: CFG.labelTag, nick: w._ident.nick, server: w._ident.server || '', cos: cosGet(w._user)
+    name: w._user.name, tag: (REMOTE && w._user.tag) || CFG.labelTag, tagColor: w._user.tagColor || '', avatar: w._user.avatar || '', nick: w._ident.nick, server: w._ident.server || '', cos: cosGet(w._user)
   }));
   const payload = { t: 'presence', users, debugAll: !!CFG.debugLabelAll, online: live.length };
   for (const w of live) if (w._visible) sealSend(w, payload);
@@ -342,13 +376,35 @@ function killApp(ws, reason) {
   setTimeout(() => { try { ws.close(4005, String(reason || 'revoked').slice(0, 60)); } catch (e) {} }, 120);
 }
 
-function doAuth(ws, m) {
+async function doAuth(ws, m) {
+  if (ws._authBusy) return;
+  ws._authBusy = true;
+  try { await doAuth2(ws, m); } finally { ws._authBusy = false; }
+}
+
+async function doAuth2(ws, m) {
   clearTimeout(ws._authTimer);
   const ip = ws._ip;
   if (!m || m.t !== 'auth') { sealSend(ws, { t: 'authfail', reason: 'proto' }); try { ws.close(4003, 'proto'); } catch (e) {} return; }
   const hwid = typeof m.hwid === 'string' ? m.hwid.slice(0, 128) : '';
   if (!hwid) { sealSend(ws, { t: 'authfail', reason: 'hwid' }); try { ws.close(4003, 'hwid'); } catch (e) {} return; }
   let user = null;
+  const fail = (reason) => { sealSend(ws, { t: 'authfail', reason }); try { ws.close(4003, reason); } catch (e) {} };
+  if (REMOTE) {
+    let r;
+    if (m.mode === 'resume' && m.token) {
+      const p = parseToken(m.token);
+      if (!p) return fail('invalid');
+      r = await authCall('/relay/check', { id: p.i, name: p.u, tv: p.tv, hwid });
+    } else {
+      r = await authCall('/relay/login', { username: String(m.username || '').slice(0, 64), key: String(m.key || '').slice(0, 64), hwid, ip });
+    }
+    if (!r.ok) return fail(authReason(r.error));
+    user = r.user;
+    ws._hwid = hwid;
+    appendLog(user, { sev: 'info', tag: 'AUTH', msg: 'Signed in from ' + ip });
+    return attachUser(ws, user);
+  }
   if (m.mode === 'resume' && m.token) {
     user = verifyToken(m.token);
   } else {
@@ -465,7 +521,20 @@ setInterval(() => {
 
 // Periodic server-side re-validation: kick any logged-in app whose account was deleted,
 // expired, or revoked since it connected (without waiting for it to reconnect).
-setInterval(() => {
+setInterval(async () => {
+  if (REMOTE) {
+    for (const [key, ws] of [...apps]) {
+      if (!ws || ws.readyState !== 1 || !ws._user) continue;
+      const r = await authCall('/relay/check', { id: ws._user.id, tv: ws._user.tv || 0, hwid: ws._hwid });
+      if (r.ok || r.error === 'auth_unavailable') { if (r.ok) ws._user = Object.assign(ws._user, r.user); continue; }
+      const reason = r.error === 'revoked' ? 'revoked' : r.error === 'hwid_mismatch' ? 'hwid' : r.error === 'banned' ? 'revoked' : r.error;
+      appendLog(ws._user, { sev: 'warn', tag: 'AUTH', msg: 'Access ' + reason + ' - disconnecting' });
+      const s = sessions.get(key);
+      if (s) releaseSession(s, reason);
+      killApp(ws, reason);
+    }
+    return;
+  }
   const users = loadUsers();
   for (const [key, ws] of apps) {
     if (!ws || ws.readyState !== 1) continue;

@@ -40,7 +40,9 @@ if (process.env.TUNNEL === '1') {
   console.log(`public url ${config.webappUrl}`);
 }
 
-if (bot) {
+if (bot && process.env.BOT_POLLING === '0') {
+  console.warn('BOT_POLLING=0: web only (no Telegram polling, menu untouched)');
+} else if (bot) {
   bot.start({ onStart: (me) => console.log(`bot @${me.username} started`) });
   setupMenu(bot).catch((e) => console.error('setupMenu', e.message));
   for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, () => bot.stop());
