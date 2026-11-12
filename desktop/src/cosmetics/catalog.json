@@ -1,0 +1,460 @@
+{
+ "slots": [
+  {
+   "id": "weapon",
+   "title": "Weapon"
+  },
+  {
+   "id": "pet",
+   "title": "Pet"
+  }
+ ],
+ "items": [
+  {
+   "id": "adventurer_lantern",
+   "name": "Adventurer Lantern",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/adventurer_lantern.png",
+   "bones": 1,
+   "quads": 49,
+   "anims": [
+    "idle"
+   ]
+  },
+  {
+   "id": "baguette",
+   "name": "Baguette",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/baguette.png",
+   "bones": 1,
+   "quads": 48,
+   "anims": []
+  },
+  {
+   "id": "bone_club",
+   "name": "Bone Club",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/bone_club.png",
+   "bones": 1,
+   "quads": 42,
+   "anims": []
+  },
+  {
+   "id": "candy_cane",
+   "name": "Candy Cane",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/candy_cane.png",
+   "bones": 1,
+   "quads": 60,
+   "anims": []
+  },
+  {
+   "id": "crystal_sword",
+   "name": "Crystal Sword",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/crystal_sword.png",
+   "bones": 1,
+   "quads": 66,
+   "anims": []
+  },
+  {
+   "id": "energy_saber",
+   "name": "Energy Saber",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/energy_saber.png",
+   "bones": 2,
+   "quads": 48,
+   "anims": []
+  },
+  {
+   "id": "fish_planter",
+   "name": "Fish Planter",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/fish_planter.png",
+   "bones": 1,
+   "quads": 66,
+   "anims": [
+    "idle"
+   ]
+  },
+  {
+   "id": "fish_sword",
+   "name": "Fish Sword",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/fish_sword.png",
+   "bones": 1,
+   "quads": 72,
+   "anims": []
+  },
+  {
+   "id": "flame_sword",
+   "name": "Flame Sword",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/flame_sword.png",
+   "bones": 1,
+   "quads": 60,
+   "anims": []
+  },
+  {
+   "id": "frost_blade",
+   "name": "Frost Blade",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/frost_blade.png",
+   "bones": 1,
+   "quads": 60,
+   "anims": []
+  },
+  {
+   "id": "katana_blade",
+   "name": "Katana Blade",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/katana_blade.png",
+   "bones": 1,
+   "quads": 84,
+   "anims": []
+  },
+  {
+   "id": "kings_scepter",
+   "name": "Kings Scepter",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/kings_scepter.png",
+   "bones": 2,
+   "quads": 131,
+   "anims": [
+    "idle"
+   ]
+  },
+  {
+   "id": "moon_wizard_staff",
+   "name": "Moon Wizard Staff",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/moon_wizard_staff.png",
+   "bones": 1,
+   "quads": 48,
+   "anims": [
+    "idle"
+   ]
+  },
+  {
+   "id": "morning_star",
+   "name": "Morning Star",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/morning_star.png",
+   "bones": 1,
+   "quads": 84,
+   "anims": []
+  },
+  {
+   "id": "pin_doll",
+   "name": "Pin Doll",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/pin_doll.png",
+   "bones": 1,
+   "quads": 48,
+   "anims": [
+    "idle"
+   ]
+  },
+  {
+   "id": "pirate_cutlass",
+   "name": "Pirate Cutlass",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/pirate_cutlass.png",
+   "bones": 1,
+   "quads": 72,
+   "anims": []
+  },
+  {
+   "id": "reaper_scythe",
+   "name": "Reaper Scythe",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/reaper_scythe.png",
+   "bones": 1,
+   "quads": 84,
+   "anims": []
+  },
+  {
+   "id": "royal_scepter",
+   "name": "Royal Scepter",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/royal_scepter.png",
+   "bones": 1,
+   "quads": 78,
+   "anims": []
+  },
+  {
+   "id": "sakura_branch",
+   "name": "Sakura Branch",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/sakura_branch.png",
+   "bones": 1,
+   "quads": 48,
+   "anims": []
+  },
+  {
+   "id": "sea_trident",
+   "name": "Sea Trident",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/sea_trident.png",
+   "bones": 1,
+   "quads": 66,
+   "anims": []
+  },
+  {
+   "id": "skull_torch",
+   "name": "Skull Torch",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/skull_torch.png",
+   "bones": 2,
+   "quads": 38,
+   "anims": [
+    "idle"
+   ]
+  },
+  {
+   "id": "squeaky_hammer",
+   "name": "Squeaky Hammer",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/squeaky_hammer.png",
+   "bones": 1,
+   "quads": 30,
+   "anims": []
+  },
+  {
+   "id": "sun_wizard_staff",
+   "name": "Sun Wizard Staff",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/sun_wizard_staff.png",
+   "bones": 1,
+   "quads": 48,
+   "anims": [
+    "idle"
+   ]
+  },
+  {
+   "id": "thunder_hammer",
+   "name": "Thunder Hammer",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/thunder_hammer.png",
+   "bones": 1,
+   "quads": 54,
+   "anims": []
+  },
+  {
+   "id": "viking_axe",
+   "name": "Viking Axe",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/viking_axe.png",
+   "bones": 1,
+   "quads": 72,
+   "anims": []
+  },
+  {
+   "id": "witch_broom",
+   "name": "Witch Broom",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/witch_broom.png",
+   "bones": 1,
+   "quads": 36,
+   "anims": []
+  },
+  {
+   "id": "wizard_book",
+   "name": "Wizard Book",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/wizard_book.png",
+   "bones": 1,
+   "quads": 64,
+   "anims": [
+    "idle"
+   ]
+  },
+  {
+   "id": "wukong_jingubang",
+   "name": "Wukong Jingubang",
+   "slot": "weapon",
+   "preview": "assets/cosmetics/wukong_jingubang.png",
+   "bones": 2,
+   "quads": 70,
+   "anims": [
+    "idle"
+   ]
+  },
+  {
+   "id": "hoglin_baby",
+   "name": "Baby Hoglin",
+   "slot": "pet",
+   "preview": "assets/cosmetics/hoglin_baby.png",
+   "bones": 9,
+   "quads": 66,
+   "anims": [],
+   "pet": {
+    "offset": [
+     0.95,
+     0,
+     -0.75
+    ],
+    "scale": 0.42,
+    "fly": false
+   },
+   "mob": {
+    "entity": "hoglin",
+    "baby": true
+   }
+  },
+  {
+   "id": "sniffer_baby",
+   "name": "Baby Sniffer",
+   "slot": "pet",
+   "preview": "assets/cosmetics/sniffer_baby.png",
+   "bones": 13,
+   "quads": 82,
+   "anims": [],
+   "pet": {
+    "offset": [
+     0.95,
+     0,
+     -0.75
+    ],
+    "scale": 0.38,
+    "fly": false
+   },
+   "mob": {
+    "entity": "sniffer",
+    "baby": true
+   }
+  },
+  {
+   "id": "bat",
+   "name": "Bat",
+   "slot": "pet",
+   "preview": "assets/cosmetics/bat.png",
+   "bones": 9,
+   "quads": 26,
+   "anims": [],
+   "pet": {
+    "offset": [
+     0.8,
+     1,
+     -0.45
+    ],
+    "scale": 0.58,
+    "fly": true
+   },
+   "mob": {
+    "entity": "bat",
+    "baby": false
+   }
+  },
+  {
+   "id": "chick",
+   "name": "Chick",
+   "slot": "pet",
+   "preview": "assets/cosmetics/chick.png",
+   "bones": 5,
+   "quads": 24,
+   "anims": [],
+   "pet": {
+    "offset": [
+     0.85,
+     0,
+     -0.65
+    ],
+    "scale": 0.8,
+    "fly": false
+   },
+   "mob": {
+    "entity": "chicken",
+    "baby": true
+   }
+  },
+  {
+   "id": "hoglin",
+   "name": "Hoglin",
+   "slot": "pet",
+   "preview": "assets/cosmetics/hoglin.png",
+   "bones": 8,
+   "quads": 66,
+   "anims": [],
+   "pet": {
+    "offset": [
+     1.1,
+     0,
+     -0.85
+    ],
+    "scale": 0.48,
+    "fly": false
+   },
+   "mob": {
+    "entity": "hoglin",
+    "baby": false
+   }
+  },
+  {
+   "id": "cat",
+   "name": "Kitten",
+   "slot": "pet",
+   "preview": "assets/cosmetics/cat.png",
+   "bones": 8,
+   "quads": 60,
+   "anims": [],
+   "pet": {
+    "offset": [
+     0.85,
+     0,
+     -0.65
+    ],
+    "scale": 0.78,
+    "fly": false
+   },
+   "mob": {
+    "entity": "cat",
+    "baby": true
+   }
+  },
+  {
+   "id": "dog",
+   "name": "Puppy",
+   "slot": "pet",
+   "preview": "assets/cosmetics/dog.png",
+   "bones": 9,
+   "quads": 60,
+   "anims": [],
+   "pet": {
+    "offset": [
+     0.85,
+     0,
+     -0.65
+    ],
+    "scale": 0.78,
+    "fly": false
+   },
+   "mob": {
+    "entity": "wolf",
+    "baby": true
+   }
+  },
+  {
+   "id": "sniffer",
+   "name": "Sniffer",
+   "slot": "pet",
+   "preview": "assets/cosmetics/sniffer.png",
+   "bones": 13,
+   "quads": 82,
+   "anims": [],
+   "pet": {
+    "offset": [
+     1.1,
+     0,
+     -0.85
+    ],
+    "scale": 0.55,
+    "fly": false
+   },
+   "mob": {
+    "entity": "sniffer",
+    "baby": false
+   }
+  }
+ ]
+}

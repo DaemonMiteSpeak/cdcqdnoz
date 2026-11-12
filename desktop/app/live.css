@@ -1,0 +1,111 @@
+/* live layer: real data on top of the flattened artwork */
+
+/* artwork that is replaced by live HTML */
+.window.app .app-art [data-row],
+.window.app .app-art [data-i="58"],
+.window.app .app-art [data-i="59"],
+.window.app .app-art [data-i="60"] { display: none; }
+.window.app.has-clients .app-art [data-i="61"] { display: none; }
+.window.app.is-ph-connecting .app-art [data-i="14"],
+.window.app.is-ph-connecting .app-art [data-i="15"],
+.window.app.is-ph-ready .app-art [data-i="14"],
+.window.app.is-ph-ready .app-art [data-i="15"] { display: none; }
+
+/* get-address button states */
+.window.app.is-ph-connecting .app-art [data-i="12"],
+.window.app.is-ph-connecting .app-art [data-i="13"] { animation: live-pulse 1.1s ease-in-out infinite; }
+.window.app.is-ph-ready .app-art [data-i="12"],
+.window.app.is-ph-ready .app-art [data-i="13"] { opacity: .6; animation: none; }
+.window.app.is-ph-ready:has(.app-get:hover) [data-i="12"],
+.window.app.is-ph-ready:has(.app-get:active) [data-i="12"] { fill: #EF393C; }
+[data-i="12"], [data-i="13"] { transition: opacity .3s ease, fill .2s ease; }
+@keyframes live-pulse { 0%, 100% { opacity: .85; } 50% { opacity: .38; } }
+.window.app.is-ph-connecting .app-get,
+.window.app.is-ph-ready .app-get { cursor: default; }
+
+.live-get {
+  position: absolute; left: 18px; top: 201px; width: 230px; height: 30px;
+  display: none; align-items: center; justify-content: center; gap: 7px;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif; font-size: 12px; font-weight: 500; letter-spacing: .1px;
+  color: #F3D6D7; pointer-events: none;
+}
+.live-get svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.window.app.is-ph-connecting .live-get, .window.app.is-ph-ready .live-get { display: flex; }
+.window.app.is-ph-connecting .live-get svg { display: none; }
+.window.app.is-ph-connecting .live-get { color: #FFE3E3; }
+
+/* switch role / stop are live only when they can act */
+.window.app.is-role-on [data-i="16"] { opacity: 1; }
+.window.app.is-role-on:has(.app-role:hover) [data-i="16"] { opacity: 1; filter: brightness(1.12); }
+.window.app.is-role-on:has(.app-role:active) [data-i="16"] { filter: brightness(.92); }
+.window.app.is-ban-on [data-i="20"] { opacity: 1; }
+.window.app.is-role-on .app-role, .window.app.is-ban-on .app-ban { cursor: pointer; }
+.window.app:not(.is-role-on) .app-role, .window.app:not(.is-ban-on) .app-ban { cursor: default; }
+
+/* server field locked while a session is running */
+.window.app.is-ph-connecting .app-input, .window.app.is-ph-ready .app-input { color: #8A8A8A; cursor: default; }
+.window.app.is-ph-connecting .app-version, .window.app.is-ph-ready .app-version { cursor: default; }
+.app-input::placeholder { color: #454545; }
+
+/* account banner */
+.live-ban { position: absolute; left: 309px; top: 66px; width: 250px; pointer-events: none; font-family: "Inter", "Segoe UI", Arial, sans-serif; }
+.live-ban .nm { display: flex; align-items: baseline; gap: 5px; height: 17px; line-height: 17px; font-size: 13px; font-weight: 500; color: #EDEDED; white-space: nowrap; overflow: hidden; }
+.live-ban .nm b { font-weight: 600; font-size: 10px; color: var(--red, #EF393C); }
+.live-ban .dt { margin-top: 1px; height: 12px; line-height: 12px; font-size: 9px; letter-spacing: .1px; color: #858585; white-space: nowrap; }
+.window.app:not(.is-authed) .live-ban { display: none; }
+
+/* address chip */
+.live-chip {
+  position: absolute; right: 12px; top: 120px; height: 20px; padding: 0 8px; box-sizing: border-box;
+  display: none; align-items: center; gap: 6px; border-radius: 6px; cursor: pointer;
+  background: rgba(255,255,255,.035); box-shadow: inset 0 0 0 .6px rgba(255,255,255,.07);
+  font-family: "Inter", "Segoe UI", Arial, sans-serif; font-size: 11px; letter-spacing: .1px; color: #9A9A9A;
+  transition: color .2s ease, background .2s ease; -webkit-app-region: no-drag;
+}
+.live-chip:hover { color: #E6E6E6; background: rgba(255,255,255,.07); }
+.live-chip svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.window.app.has-address .live-chip { display: flex; }
+.live-chip.is-copied { color: var(--red, #EF393C); }
+
+/* clients */
+.live-clients { position: absolute; left: 264px; top: 145px; right: 12px; pointer-events: none; font-family: "Inter", "Segoe UI", Arial, sans-serif; }
+.live-clients .cl { position: relative; height: 25px; animation: live-rise .3s ease both; }
+.live-clients .cl-n { position: absolute; left: 0; top: 1px; font-size: 12px; line-height: 15px; font-weight: 500; color: #D9D9D9; white-space: nowrap; max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
+.live-clients .cl-s { position: absolute; left: 0; top: 15px; font-size: 9px; line-height: 11px; color: #4C4C4C; }
+.live-clients .cl-r { position: absolute; right: 0; top: 4px; font-size: 12px; line-height: 15px; font-weight: 500; color: #EF393C; transition: color .25s ease; }
+.live-clients .cl-r.w { color: #E0494C; }
+@keyframes live-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* logs */
+.live-logs {
+  position: absolute; left: 8px; top: 278px; width: 584px; height: 111px; overflow-y: auto; overflow-x: hidden;
+  font-family: "JetBrains Mono", "Cascadia Mono", Consolas, "Courier New", monospace; font-size: 10px; line-height: 16px;
+  -webkit-app-region: no-drag; scrollbar-width: none; user-select: text; cursor: text;
+}
+.live-logs::-webkit-scrollbar { display: none; }
+.live-logs .lg { height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #DADADA; animation: live-rise .22s ease both; }
+.live-logs .t { color: #808080; }
+.live-logs .s-info { color: #A78BEA; }
+.live-logs .s-warn { color: #E8B35C; }
+.live-logs .s-err { color: #FF7377; }
+.live-logs .lg.is-err .m { color: #FFD9DA; }
+.live-logs .empty { color: #4A4A4A; font-style: normal; }
+
+/* login */
+.login-err {
+  position: absolute; left: 0; top: 285px; width: 100%; text-align: center; opacity: 0; pointer-events: none;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif; font-size: 11px; color: #FF6B6E; transition: opacity .2s ease;
+}
+.login-err.is-on { opacity: 1; }
+#window.is-wait .login-hit { cursor: progress; }
+#username::placeholder, #password::placeholder { color: #4A4A4A; }
+
+/* address received: switch role + end session become fully active (same red as Get address before the click) */
+.window.app.is-ph-ready [data-i="16"],
+.window.app.is-ph-ready [data-i="18"],
+.window.app.is-ph-ready [data-i="19"],
+.window.app.is-ph-ready [data-i="20"] g[opacity] { opacity: 1; }
+.window.app.is-ph-ready:has(.app-role:hover) [data-i="16"] { opacity: 1; filter: brightness(1.12); }
+.window.app.is-ph-ready:has(.app-role:active) [data-i="16"] { opacity: 1; filter: brightness(.92); }
+.window.app.is-ph-ready .app-role, .window.app.is-ph-ready .app-ban { cursor: pointer; }
+[data-i="20"] g[opacity] { transition: opacity .24s ease; }

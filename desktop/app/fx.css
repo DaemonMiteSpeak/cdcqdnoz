@@ -1,0 +1,174 @@
+﻿/* page transitions (blur veil + spinner) and the settings panel */
+
+/* ---------- veil: blurs the whole window, shows a spinner and a status line ---------- */
+.fx-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: rgba(10, 10, 10, 0);
+  -webkit-backdrop-filter: blur(0px);
+  backdrop-filter: blur(0px);
+  transition: backdrop-filter .46s var(--ease), -webkit-backdrop-filter .46s var(--ease), background-color .46s var(--ease);
+}
+
+.window.fx-blur .fx-veil {
+  background: rgba(10, 10, 10, .34);
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
+}
+
+/* blocks clicks below the title bar (minimize / close stay usable) */
+.fx-block {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 49px;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  pointer-events: none;
+  padding-bottom: 10px;
+}
+
+.window.fx-blur .fx-block { pointer-events: auto; }
+
+.fx-spin,
+.fx-text {
+  opacity: 0;
+  transform: translateY(5px) scale(.94);
+  transition: opacity .3s ease, transform .4s var(--ease);
+}
+
+.window.fx-blur:not(.fx-quiet) .fx-spin,
+.window.fx-blur:not(.fx-quiet) .fx-text { opacity: 1; transform: none; transition-delay: .06s; }
+
+.fx-spin {
+  width: 42px;
+  height: 42px;
+  overflow: visible;
+}
+
+.fx-spin .tr { fill: none; stroke: rgba(255, 255, 255, .09); stroke-width: 3; }
+
+.fx-spin .ar {
+  fill: none;
+  stroke: #EF393C;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 34 100;
+  transform-origin: 21px 21px;
+  animation: fx-rot 1s cubic-bezier(.45, .1, .55, .9) infinite;
+}
+
+@keyframes fx-rot { to { transform: rotate(360deg); } }
+
+.fx-text {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .15px;
+  color: #D9D9D9;
+  min-height: 16px;
+}
+
+/* ---------- settings button (left of minimize) ---------- */
+.app-settings, .app-cos { top: 13px; width: 23px; height: 27px; display: grid; place-items: center; color: #303030; transition: color .2s ease, transform .5s var(--ease); }
+.app-settings { left: 517px; }
+.app-cleaner { left: 493px; }
+.app-cos { left: 469px; }
+.app-settings svg, .app-cos svg { width: 15px; height: 15px; display: block; fill: currentColor; }
+.app-settings:hover, .app-cos:hover { color: #D9D9D9; }
+.app-settings:focus-visible, .app-cos:focus-visible { outline: 2px solid rgba(239, 57, 60, .6); outline-offset: 0; color: #D9D9D9; }
+.window.app.is-settings .app-settings { color: #EF393C; transform: rotate(60deg); }
+.window.app.is-cos .app-cos { color: #EF393C; transform: scale(1.12); }
+
+/* ---------- settings panel ---------- */
+.set-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 49px;
+  bottom: 0;
+  /* inside .app-ui (its own stacking context): must sit above the version label (30), the version hit area (32) and its dropdown */
+  z-index: 50;
+  padding: 16px 22px 14px;
+  background: rgba(15, 15, 15, .82);
+  -webkit-backdrop-filter: blur(0px);
+  backdrop-filter: blur(0px);
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  visibility: hidden;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  color: #D9D9D9;
+  transition: opacity .28s ease, transform .4s var(--ease), backdrop-filter .4s var(--ease), -webkit-backdrop-filter .4s var(--ease), visibility 0s .4s;
+}
+
+.window.app.is-settings .set-panel {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  visibility: visible;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  transition-delay: 0s;
+}
+
+.set-head { display: flex; align-items: center; justify-content: space-between; height: 24px; margin-bottom: 8px; }
+.set-title { font-size: 15px; font-weight: 600; letter-spacing: .1px; color: #FFFFFF; }
+
+.set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 58px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, .06);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .35s ease, transform .45s var(--ease);
+}
+
+.window.app.is-settings .set-row { opacity: 1; transform: none; }
+.window.app.is-settings .set-row:nth-child(2) { transition-delay: .05s; }
+.window.app.is-settings .set-row:nth-child(3) { transition-delay: .09s; }
+.window.app.is-settings .set-row:nth-child(4) { transition-delay: .13s; }
+.window.app.is-settings .set-row:nth-child(5) { transition-delay: .17s; }
+
+.set-txt b { display: block; font-size: 13px; font-weight: 500; color: #E6E6E6; }
+.set-txt span { display: block; margin-top: 3px; font-size: 11.5px; line-height: 1.35; color: #6C6C6C; max-width: 410px; }
+
+.set-sw {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 21px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: #2A2A2A;
+  cursor: pointer;
+  transition: background-color .25s ease;
+}
+
+.set-sw::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #B9B9B9;
+  transition: transform .3s var(--ease), background-color .25s ease;
+}
+
+.set-sw[aria-checked="true"] { background: #EF393C; }
+.set-sw[aria-checked="true"]::after { transform: translateX(15px); background: #FFFFFF; }
+.set-sw:hover { filter: brightness(1.12); }
+.set-sw:focus-visible { outline: 2px solid rgba(239, 57, 60, .6); outline-offset: 2px; }

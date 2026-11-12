@@ -1,0 +1,21 @@
+import sys
+from PIL import Image, ImageChops
+
+a = Image.open(sys.argv[1]).convert('RGB')
+b = Image.open(sys.argv[2]).convert('RGB')
+W = max(a.width, b.width)
+H = max(a.height, b.height)
+A = Image.new('RGB', (W, H), (255, 0, 255))
+A.paste(a, (0, 0))
+B = Image.new('RGB', (W, H), (255, 0, 255))
+B.paste(b, (0, 0))
+d = ImageChops.difference(A, B).convert('L')
+px = list(d.tobytes())
+bad = sum(1 for p in px if p > 24)
+mean = sum(px) / len(px)
+out = Image.new('RGB', (W * 3 + 20, H), (40, 40, 40))
+out.paste(A, (0, 0))
+out.paste(B, (W + 10, 0))
+out.paste(d.point(lambda v: min(255, v * 4)).convert('RGB'), (2 * W + 20, 0))
+out.save(sys.argv[3])
+print(f"ours={a.size[0]}x{a.size[1]} ref={b.size[0]}x{b.size[1]} mean={mean:.2f} bad%={100 * bad / len(px):.2f}")
