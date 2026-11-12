@@ -1,23 +1,80 @@
-import { Bot, InlineKeyboard } from 'grammy';
+import { Bot } from 'grammy';
 import { config } from './config.js';
-import { db, kvSet } from './db.js';
+import { db } from './db.js';
 import {
-  notifier, getUser, upsertUser, setGate, settleOrder, getOrder, reviewVideo, reviewWithdrawal, fmtRub, rub, ApiError,
+  notifier, upsertUser, setGate, settleOrder, getOrder, escHtml, isAdmin, adminIds,
 } from './service.js';
 import { setBotApi } from './payments.js';
+import { registerAdmin, sendToAdmins } from './admin.js';
+
+const HELLO_EMOJI = '5339441129785929529'; // премиум-эмодзи рядом с приветствием
+const BUTTON_EMOJI = '5402406965252989103'; // премиум-эмодзи на кнопке
+
+/* Премиум-эмодзи Telegram принимает не у каждого бота (нужен Premium у владельца или юзернеймы на Fragment).
+   Если отправка с ними не прошла, пробуем упрощённые варианты и запоминаем рабочий. */
+const VARIANTS = [{ te: true, ic: true }, { te: false, ic: true }, { te: true, ic: false }, { te: false, ic: false }];
+let best = 0;
+let bestAt = 0;
+
+function welcome(user, v, admin) {
+  const name = escHtml(user.first_name || user.username || 'друг');
+  const head = v.te ? `<tg-emoji emoji-id="${HELLO_EMOJI}">👋</tg-emoji>` : '👋';
+  const text = `${head} <b>Привет, ${name}!</b>\n\n<blockquote>Нажми на кнопку ниже, чтобы пользоваться ботом.</blockquote>`;
+  const rows = [];
+  if (config.webappUrl) {
+    rows.push([{ text: 'Открыть Hider', web_app: { url: config.webappUrl }, style: 'success', ...(v.ic ? { icon_custom_emoji_id: BUTTON_EMOJI } : {}) }]);
+  }
+  if (admin) rows.push([{ text: '🛠 Админ-панель', callback_data: 'a:home' }]);
+  return { text, reply_markup: rows.length ? { inline_keyboard: rows } : undefined };
+}
+
+export async function sendWelcome(api, chatId, user) {
+  if (Date.now() - bestAt > 3600000) best = 0;
+  const admin = isAdmin(user.id);
+  let lastErr;
+  for (let i = best; i < VARIANTS.length; i++) {
+    const { text, reply_markup } = welcome(user, VARIANTS[i], admin);
+    try {
+      await api.sendMessage(chatId, text, { parse_mode: 'HTML', reply_markup });
+      if (i !== best || !bestAt) console.log(`welcome variant ${i} (${JSON.stringify(VARIANTS[i])})`);
+      best = i; bestAt = Date.now();
+      return;
+    } catch (e) {
+      lastErr = e;
+      if (e.error_code !== 400) throw e;
+      console.warn(`welcome variant ${i} rejected: ${e.description}`);
+    }
+  }
+  throw lastErr;
+}
 
 export function createBot() {
   if (!config.botToken) return null;
-  const bot = new Bot(config.botToken);
+  const bot = new Bot(config.botToken, process.env.TG_API_ROOT ? { client: { apiRoot: process.env.TG_API_ROOT } } : undefined);
   setBotApi(bot.api);
-  notifier.send = (uid, text) => bot.api.sendMessage(uid, text);
+  notifier.admin = (type, text, rows) => sendToAdmins(bot.api, type, text, rows);
 
-  const isAdmin = (ctx) => config.admins.includes(ctx.from?.id);
-  const kb = () => new InlineKeyboard().webApp('Открыть Hider', config.webappUrl);
+  /* забаненных бот не обслуживает */
+  const lastWelcome = new Map();
+  bot.use(async (ctx, next) => {
+    if (ctx.from && !isAdmin(ctx.from.id)) {
+      const u = db.prepare('SELECT banned FROM users WHERE id=?').get(ctx.from.id);
+      if (u?.banned) return null;
+    }
+    return next();
+  });
+
+  bot.on('my_chat_member', async (ctx) => {
+    if (ctx.chat.type !== 'private') return;
+    db.prepare('UPDATE users SET bot_blocked=? WHERE id=?').run(ctx.myChatMember.new_chat_member.status === 'kicked' ? 1 : 0, ctx.from.id);
+  });
 
   bot.command('start', async (ctx) => {
+    if (ctx.chat.type !== 'private') return;
     upsertUser(ctx.from);
-    await ctx.reply('Hider — личный кабинет: подписка, запуск, теги, медиа и заработок.', config.webappUrl ? { reply_markup: kb() } : undefined);
+    db.prepare('UPDATE users SET bot_blocked=0 WHERE id=?').run(ctx.from.id);
+    lastWelcome.set(ctx.from.id, Date.now());
+    await sendWelcome(ctx.api, ctx.chat.id, ctx.from);
   });
 
   bot.on('pre_checkout_query', async (ctx) => {
@@ -32,78 +89,16 @@ export function createBot() {
     settleOrder(id, { by: 'stars' });
   });
 
-  /* ----- admin ----- */
-  const guard = (fn) => async (ctx) => {
-    if (!isAdmin(ctx)) return;
-    try {
-      await fn(ctx, ctx.match?.trim().split(/\s+/).filter(Boolean) || []);
-    } catch (e) {
-      await ctx.reply(e instanceof ApiError ? `Ошибка: ${e.code}` : `Ошибка: ${e.message}`);
-    }
-  };
+  registerAdmin(bot);
 
-  bot.command('admin', guard((ctx) => ctx.reply([
-    '/orders — ожидающие заказы', '/confirm <id> — подтвердить оплату (СБП/FunPay)',
-    '/grant <uid> <дней> — выдать подписку', '/media <uid> on|off — статус Медиа',
-    '/videos — ролики на проверке', '/video <id> <просмотры> | /video <id> no [причина]',
-    '/withdrawals — заявки на вывод', '/wpay <id> [заметка] | /wno <id> [причина]',
-    '/maintenance on [минут]|off', '/user <uid>',
-  ].join('\n'))));
-
-  bot.command('orders', guard(async (ctx) => {
-    const rows = db.prepare("SELECT * FROM orders WHERE status='pending' AND expires_at>? ORDER BY id DESC LIMIT 30").all(Date.now());
-    await ctx.reply(rows.length ? rows.map((o) => `№${o.id} · ${o.method} · ${o.kind}:${o.item} · ${o.amount_rub} ₽ · uid ${o.user_id}`).join('\n') : 'Нет ожидающих заказов');
-  }));
-
-  bot.command('confirm', guard(async (ctx, [id]) => {
-    const o = settleOrder(Number(id), { by: String(ctx.from.id) });
-    await ctx.reply(`Заказ №${o.id} оплачен`);
-  }));
-
-  bot.command('grant', guard(async (ctx, [uid, days]) => {
-    const u = getUser(Number(uid));
-    if (!u) throw new ApiError(404, 'user_not_found');
-    const d = Number(days);
-    const until = Math.max(Date.now(), u.sub_until) + d * 86400000;
-    db.prepare('UPDATE users SET sub_until=?, sub_total_days=? WHERE id=?').run(until, Math.ceil((until - Date.now()) / 86400000), u.id);
-    await ctx.reply(`Подписка uid ${u.id} продлена на ${d} дн.`);
-  }));
-
-  bot.command('media', guard(async (ctx, [uid, mode]) => {
-    const u = getUser(Number(uid));
-    if (!u) throw new ApiError(404, 'user_not_found');
-    db.prepare('UPDATE users SET media_status=? WHERE id=?').run(mode === 'on' ? 1 : 0, u.id);
-    await ctx.reply(`Статус Медиа для ${u.id}: ${mode === 'on' ? 'выдан' : 'снят'}`);
-  }));
-
-  bot.command('videos', guard(async (ctx) => {
-    const rows = db.prepare("SELECT * FROM videos WHERE status='pending' ORDER BY id LIMIT 30").all();
-    await ctx.reply(rows.length ? rows.map((v) => `№${v.id} · ${v.platform} · uid ${v.user_id}\n${v.url}`).join('\n\n') : 'Нет роликов на проверке', { link_preview_options: { is_disabled: true } });
-  }));
-
-  bot.command('video', guard(async (ctx, [id, arg, ...rest]) => {
-    const v = arg === 'no' ? reviewVideo(Number(id), { reject: true, note: rest.join(' ') }) : reviewVideo(Number(id), { views: Number(arg) });
-    await ctx.reply(`Ролик №${v.id}: ${v.status}${v.payout_k ? ` · ${fmtRub(rub(v.payout_k))}` : ''}`);
-  }));
-
-  bot.command('withdrawals', guard(async (ctx) => {
-    const rows = db.prepare("SELECT * FROM withdrawals WHERE status='pending' ORDER BY id LIMIT 30").all();
-    await ctx.reply(rows.length ? rows.map((w) => `№${w.id} · ${fmtRub(rub(w.amount_k))} · ${w.method}\n${w.details} · uid ${w.user_id}`).join('\n\n') : 'Нет заявок');
-  }));
-  bot.command('wpay', guard(async (ctx, [id, ...note]) => { reviewWithdrawal(Number(id), { approve: true, note: note.join(' ') }); await ctx.reply('Выплачено'); }));
-  bot.command('wno', guard(async (ctx, [id, ...note]) => { reviewWithdrawal(Number(id), { approve: false, note: note.join(' ') }); await ctx.reply('Отклонено'); }));
-
-  bot.command('maintenance', guard(async (ctx, [mode, minutes]) => {
-    const min = Number(minutes) || 0;
-    kvSet('maintenance', mode === 'on' ? '1' : '0');
-    kvSet('maintenance_until', mode === 'on' && min ? Date.now() + min * 60000 : 0);
-    await ctx.reply(`Технические работы: ${mode === 'on' ? `включены${min ? ` на ${min} мин` : ''}` : 'выключены'}`);
-  }));
-
-  bot.command('user', guard(async (ctx, [uid]) => {
-    const u = getUser(Number(uid));
-    await ctx.reply(u ? JSON.stringify({ ...u, photo_url: undefined }, null, 1) : 'Не найден');
-  }));
+  /* единственное сообщение для пользователей — то же приветствие с кнопкой; не чаще раза в 10 секунд */
+  bot.on('message', async (ctx) => {
+    if (ctx.chat.type !== 'private') return;
+    if (Date.now() - (lastWelcome.get(ctx.from.id) || 0) < 10000) return;
+    lastWelcome.set(ctx.from.id, Date.now());
+    upsertUser(ctx.from);
+    await sendWelcome(ctx.api, ctx.chat.id, ctx.from);
+  });
 
   bot.catch((e) => console.error('bot error', e.message));
   return bot;
@@ -118,6 +113,9 @@ export async function setupMenu(bot) {
   if (!config.webappUrl) return;
   await bot.api.setChatMenuButton({ menu_button: { type: 'web_app', text: 'Hider', web_app: { url: config.webappUrl } } });
   await bot.api.setMyCommands([{ command: 'start', description: 'Открыть Hider' }]);
+  for (const id of adminIds()) {
+    await bot.api.setMyCommands([{ command: 'start', description: 'Открыть Hider' }, { command: 'admin', description: 'Админ-панель' }], { scope: { type: 'chat', chat_id: id } }).catch(() => {});
+  }
 }
 
 export { setGate };

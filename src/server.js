@@ -62,11 +62,12 @@ export function createServer(bot) {
     }
     if (!tg) return res.status(401).json({ error: 'unauthorized' });
     req.user = S.upsertUser(tg);
+    if (req.user.banned && !S.isAdmin(req.user.id)) return res.status(403).json({ error: 'banned' });
     next();
   }));
 
   const needGate = (req, res, next) => {
-    if (S.stateFor(req.user).maintenance && !config.admins.includes(req.user.id)) return res.status(503).json({ error: 'maintenance' });
+    if (S.stateFor(req.user).maintenance && !S.isAdmin(req.user.id)) return res.status(503).json({ error: 'maintenance' });
     if (!req.user.gate_ok) return res.status(403).json({ error: 'gate' });
     next();
   };
@@ -126,6 +127,7 @@ export function createServer(bot) {
     } catch (e) {
       db.prepare("UPDATE orders SET status='cancelled', note=? WHERE id=?").run(`start_failed:${e.message}`, id);
       console.error('startPayment', e.message);
+      S.adminEvent('error', `⚠️ <b>Не удалось создать платёж</b> по заказу №${id}\n${S.escHtml(o.method)}: ${S.escHtml(e.message).slice(0, 300)}\n👤 ${S.userRef(req.user)} · <code>${req.user.id}</code>`);
       throw new S.ApiError(502, 'payment_start_failed');
     }
     res.json(S.orderView(o));

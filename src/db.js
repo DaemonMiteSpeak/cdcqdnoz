@@ -92,7 +92,33 @@ CREATE TABLE IF NOT EXISTS keys (
   used_by INTEGER REFERENCES users(id),
   used_at INTEGER
 );
+CREATE TABLE IF NOT EXISTS broadcasts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  admin_id INTEGER NOT NULL,
+  audience TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  finished_at INTEGER,
+  total INTEGER NOT NULL DEFAULT 0,
+  sent INTEGER NOT NULL DEFAULT 0,
+  blocked INTEGER NOT NULL DEFAULT 0,
+  failed INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'running'
+);
+CREATE TABLE IF NOT EXISTS admin_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts INTEGER NOT NULL,
+  admin_id INTEGER NOT NULL,
+  action TEXT NOT NULL,
+  target TEXT,
+  info TEXT
+);
 `);
+{
+  const have = new Set(db.prepare('PRAGMA table_info(users)').all().map((c) => c.name));
+  for (const [col, def] of [['banned', 'INTEGER NOT NULL DEFAULT 0'], ['bot_blocked', 'INTEGER NOT NULL DEFAULT 0']]) {
+    if (!have.has(col)) db.exec(`ALTER TABLE users ADD COLUMN ${col} ${def}`);
+  }
+}
 const seq = db.prepare("SELECT seq FROM sqlite_sequence WHERE name='orders'").get();
 if (!seq) db.exec("INSERT INTO sqlite_sequence(name, seq) VALUES ('orders', 48212)");
 

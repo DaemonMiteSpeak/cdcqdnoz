@@ -3,7 +3,7 @@ import {
   config, PLANS, HWID_PACKS, TAG_PRICE, TAGS, FREE_TAGS, PROMO_BUYER_PCT, PROMO_AUTHOR_PCT,
   MIN_WITHDRAW, HWID_COOLDOWN_MS, START_HWID_RESETS, VIDEO_WINDOW_MS,
 } from './config.js';
-import { db, tx, kvGet } from './db.js';
+import { db, tx, kvGet, kvSet } from './db.js';
 
 const DAY = 86400000;
 
@@ -20,8 +20,28 @@ export class ApiError extends Error {
     this.extra = extra;
   }
 }
-export const notifier = { send: async () => {} };
-const notify = (uid, text) => notifier.send(uid, text).catch(() => {});
+/* Пользователям бот шлёт только приветствие с кнопкой (см. bot.js); все события уходят администраторам. */
+export const notifier = { admin: async () => {} };
+export const adminEvent = (type, text, rows) => { notifier.admin(type, text, rows).catch(() => {}); };
+
+export const escHtml = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+export const userRef = (u) => `<a href="tg://user?id=${u.id}">${escHtml(u.username ? `@${u.username}` : u.first_name || `id${u.id}`)}</a>`;
+
+/* ---------- администраторы: ADMIN_IDS из .env (главные) + добавленные из панели ---------- */
+const extraAdmins = () => { try { return JSON.parse(kvGet('admins', '[]')).map(Number).filter(Boolean); } catch { return []; } };
+export const adminIds = () => [...new Set([...config.admins, ...extraAdmins()])];
+export const isAdmin = (id) => adminIds().includes(Number(id));
+export const isSuperAdmin = (id) => config.admins.includes(Number(id));
+export function addAdmin(id) {
+  id = Number(id);
+  if (!Number.isSafeInteger(id) || id <= 0) throw new ApiError(400, 'bad_id');
+  if (!isAdmin(id)) kvSet('admins', JSON.stringify([...extraAdmins(), id]));
+}
+export function removeAdmin(id) {
+  id = Number(id);
+  if (isSuperAdmin(id)) throw new ApiError(403, 'super_admin');
+  kvSet('admins', JSON.stringify(extraAdmins().filter((x) => x !== id)));
+}
 
 const rub = (k) => Math.round(k) / 100;
 const fmtRub = (n) => `${Number.isInteger(n) ? n : n.toFixed(2).replace('.', ',')} ₽`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -32,6 +52,8 @@ export function upsertUser(tg) {
   if (!row) {
     db.prepare(`INSERT INTO users(id, first_name, username, photo_url, created_at, tags, hwid_resets)
                 VALUES(?,?,?,?,?,?,?)`).run(tg.id, tg.first_name || '', tg.username || null, tg.photo_url || null, now, JSON.stringify([]), START_HWID_RESETS);
+    const total = db.prepare('SELECT COUNT(*) n FROM users').get().n;
+    adminEvent('user_new', `🆕 <b>Новый пользователь</b>\n${userRef({ id: tg.id, username: tg.username, first_name: tg.first_name })} · <code>${tg.id}</code>\nВсего пользователей: ${total}`);
   } else {
     db.prepare('UPDATE users SET first_name=?, username=?, photo_url=COALESCE(?, photo_url) WHERE id=?')
       .run(tg.first_name || row.first_name, tg.username || null, tg.photo_url || null, tg.id);
@@ -110,6 +132,7 @@ export function createPromo(u, code) {
     if (String(e.message).includes('UNIQUE')) throw new ApiError(409, 'promo_taken', { suggest: promoSuggestions(code, u) });
     throw e;
   }
+  adminEvent('promo', `🏷 <b>Новый промокод</b> <code>${escHtml(code)}</code>\n👤 ${userRef(u)} · <code>${u.id}</code>`);
   return getUser(u.id);
 }
 
@@ -232,12 +255,17 @@ export function settleOrder(id, { by = 'auto' } = {}) {
   });
   if (!res.already) {
     const o = res.o;
-    const what = o.kind === 'sub' ? `Подписка продлена на ${o.item} дн.` : o.kind === 'hwid' ? `Начислено сбросов HWID: ${o.item}` : `Тег «${tagById(o.item)?.title}» куплен`;
-    notify(o.user_id, `Чек №${o.id}\n${what}\nОплачено: ${fmtRub(o.amount_rub)}`);
-    if (o.promo_code) {
-      const p = findPromo(o.promo_code);
-      if (p) notify(p.owner_id, `По твоему коду ${p.code} оплатили заказ на ${fmtRub(o.amount_rub)} — тебе начислено ${fmtRub(rub(Math.round(o.amount_rub * PROMO_AUTHOR_PCT)))}`);
-    }
+    const buyer = getUser(o.user_id);
+    const what = o.kind === 'sub' ? `Подписка на ${o.item} дн.` : o.kind === 'hwid' ? `Сбросы HWID × ${o.item}` : `Тег «${tagById(o.item)?.title}»`;
+    const p = o.promo_code ? findPromo(o.promo_code) : null;
+    const owner = p ? getUser(p.owner_id) : null;
+    const via = /^\d+$/.test(String(by)) ? `вручную (админ ${by})` : by;
+    adminEvent('purchase', [
+      `💰 <b>Покупка</b> №${o.id}`, escHtml(what),
+      `${fmtRub(o.amount_rub)} · ${escHtml(o.method)} · ${escHtml(via)}`,
+      `👤 ${userRef(buyer)} · <code>${buyer.id}</code>`,
+      owner ? `🏷 ${escHtml(o.promo_code)} → ${userRef(owner)}, начислено ${fmtRub(rub(Math.round(o.amount_rub * PROMO_AUTHOR_PCT)))}` : null,
+    ].filter(Boolean).join('\n'));
   }
   return res.o;
 }
@@ -298,8 +326,9 @@ export function activateKey(u, raw) {
   });
   if (res.err) fail(...res.err);
   keyFails.delete(u.id);
-  notify(u.id, `Ключ ${code} активирован\nПодписка продлена на ${res.days} дн.`);
-  return { user: getUser(u.id), days: res.days };
+  const after = getUser(u.id);
+  adminEvent('key', `🔑 <b>Активация ключа</b>\n<code>${code}</code> · +${res.days} дн.\n👤 ${userRef(after)} · <code>${after.id}</code>`);
+  return { user: after, days: res.days };
 }
 
 export function cancelOrder(u, id) {
@@ -311,7 +340,7 @@ export function cancelOrder(u, id) {
 
 /* ---------- profile actions ---------- */
 export function resetHwid(u) {
-  return tx(() => {
+  const res = tx(() => {
     const cur = getUser(u.id);
     const now = Date.now();
     if (cur.hwid_resets <= 0) throw new ApiError(409, 'no_resets');
@@ -321,6 +350,8 @@ export function resetHwid(u) {
     db.prepare('UPDATE users SET hwid=NULL, hwid_resets=hwid_resets-1, last_reset_at=? WHERE id=?').run(now, u.id);
     return getUser(u.id);
   });
+  adminEvent('hwid', `♻️ <b>Сброс HWID</b>\n👤 ${userRef(res)} · <code>${res.id}</code> · осталось сбросов: ${res.hwid_resets}`);
+  return res;
 }
 
 export function selectTag(u, tag) {
@@ -401,7 +432,13 @@ export function submitVideo(u, url, info) {
   if (db.prepare("SELECT 1 FROM videos WHERE platform=? AND url=? AND status<>'rejected'").get(info.platform, url)) throw new ApiError(409, 'video_exists');
   const r = db.prepare('INSERT INTO videos(user_id, platform, url, title, is_long, published_at, created_at, views, payout_k) VALUES(?,?,?,?,?,?,?,?,?)')
     .run(u.id, info.platform, url, info.title, info.long ? 1 : 0, info.publishedAt, Date.now(), info.views, q.payoutK);
-  return { id: Number(r.lastInsertRowid), payoutK: q.payoutK };
+  const id = Number(r.lastInsertRowid);
+  adminEvent('video', [
+    `🎬 <b>Новый ролик</b> №${id} · ${escHtml(info.platform)}`, escHtml(info.title || url),
+    `Просмотры: ${info.views ?? '—'} · выплата: ${fmtRub(rub(q.payoutK))}`, escHtml(url),
+    `👤 ${userRef(u)} · <code>${u.id}</code>`,
+  ].join('\n'), [[{ text: '🎬 Открыть заявку', callback_data: `a:v:${id}` }]]);
+  return { id, payoutK: q.payoutK };
 }
 
 export const listVideos = (u) => db.prepare('SELECT * FROM videos WHERE user_id=? ORDER BY id DESC LIMIT 50').all(u.id);
@@ -413,13 +450,11 @@ export function reviewVideo(id, { views, reject, note }) {
     if (v.status !== 'pending') throw new ApiError(409, 'already_reviewed');
     if (reject) {
       db.prepare("UPDATE videos SET status='rejected', payout_k=0, note=? WHERE id=?").run(note || null, id);
-      notify(v.user_id, `Ролик №${id} отклонён${note ? `: ${note}` : ''}`);
     } else {
       const n = views ?? v.views;
       const p = videoPayoutK({ platform: v.platform, long: !!v.is_long }, n);
       db.prepare("UPDATE videos SET status='paid', views=?, payout_k=? WHERE id=?").run(n, p, id);
       db.prepare('UPDATE users SET balance_k=balance_k+?, earned_k=earned_k+? WHERE id=?').run(p, p, v.user_id);
-      notify(v.user_id, `Ролик №${id}: ${n} просмотров — начислено ${fmtRub(rub(p))}`);
     }
     return db.prepare('SELECT * FROM videos WHERE id=?').get(id);
   });
@@ -440,13 +475,18 @@ export function requestWithdrawal(u, { method, details, amount }) {
   if (method === 'crypto' && !(TRC_RE.test(details) || TON_RE.test(details))) throw new ApiError(400, 'bad_details');
   if (method === 'funpay' && !/^[\w.-]{2,40}$/.test(details)) throw new ApiError(400, 'bad_details');
   if (!['card', 'crypto', 'funpay'].includes(method)) throw new ApiError(400, 'bad_method');
-  return tx(() => {
+  const id = tx(() => {
     const cur = getUser(u.id);
     if (amountK > cur.balance_k) throw new ApiError(400, 'over_balance', { balanceK: cur.balance_k });
     db.prepare('UPDATE users SET balance_k=balance_k-? WHERE id=?').run(amountK, u.id);
     const info = db.prepare('INSERT INTO withdrawals(user_id, method, details, amount_k, created_at) VALUES(?,?,?,?,?)').run(u.id, method, details, amountK, Date.now());
     return Number(info.lastInsertRowid);
   });
+  adminEvent('withdraw', [
+    `💸 <b>Заявка на вывод</b> №${id}`, `${fmtRub(rub(amountK))} · ${escHtml(method)}`, `<code>${escHtml(details)}</code>`,
+    `👤 ${userRef(u)} · <code>${u.id}</code>`,
+  ].join('\n'), [[{ text: '💸 Открыть заявку', callback_data: `a:w:${id}` }]]);
+  return id;
 }
 
 export const listWithdrawals = (u) => db.prepare('SELECT * FROM withdrawals WHERE user_id=? ORDER BY id DESC LIMIT 50').all(u.id);
@@ -459,11 +499,9 @@ export function reviewWithdrawal(id, { approve, note }) {
     if (approve) {
       db.prepare("UPDATE withdrawals SET status='paid', note=? WHERE id=?").run(note || null, id);
       db.prepare('UPDATE users SET withdrawn_k=withdrawn_k+? WHERE id=?').run(w.amount_k, w.user_id);
-      notify(w.user_id, `Вывод №${id} на ${fmtRub(rub(w.amount_k))} выплачен`);
     } else {
       db.prepare("UPDATE withdrawals SET status='rejected', note=? WHERE id=?").run(note || null, id);
       db.prepare('UPDATE users SET balance_k=balance_k+? WHERE id=?').run(w.amount_k, w.user_id);
-      notify(w.user_id, `Вывод №${id} отклонён${note ? `: ${note}` : ''}. Сумма вернулась на баланс`);
     }
     return db.prepare('SELECT * FROM withdrawals WHERE id=?').get(id);
   });
