@@ -1,0 +1,74 @@
+{
+  "name": "hider",
+  "productName": "Hider",
+  "version": "1.0.1",
+  "description": "Hider",
+  "main": "main.js",
+  "author": "Hider",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build": "node build.js",
+    "build:jit": "node build.js --jit"
+  },
+  "build": {
+    "appId": "com.hider.app",
+    "productName": "Hider",
+    "copyright": "Hider",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/**/*",
+      "src/**/*",
+      "build/icon.ico"
+    ],
+    "asar": true,
+    "compression": "normal",
+    "electronLanguages": [
+      "en-US",
+      "ru"
+    ],
+    "win": {
+      "target": [
+        "dir"
+      ],
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "Hider-Portable-${version}.${ext}"
+    },
+    "nsis": {
+      "artifactName": "Hider-Setup-${version}.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Hider"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0",
+    "javascript-obfuscator": "^5.10.0",
+    "png-to-ico": "^3.0.2",
+    "rcedit": "^5.0.2",
+    "sharp": "^0.35.5",
+    "ssh2": "^1.17.0"
+  },
+  "dependencies": {
+    "bytenode": "^2.1.0",
+    "minecraft-data": "^3.119.0",
+    "minecraft-protocol": "^1.68.0",
+    "prismarine-nbt": "^2.8.0",
+    "ws": "^8.22.1"
+  }
+}

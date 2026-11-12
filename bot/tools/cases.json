@@ -1,0 +1,17 @@
+[
+ {"id":"gate","frame":"Q0OWA4R4MK","w":360,"route":"/gate","seed":{"gate_ok":0}},
+ {"id":"home","frame":"1dq5WEXox_","w":360,"route":"/"},
+ {"id":"profile","frame":"kdcOABjo4h","w":360,"route":"/profile"},
+ {"id":"profile-off","frame":"N61K73QS_2","w":360,"route":"/profile","seed":{"sub_until":0,"sub_total_days":0,"hwid_resets":0}},
+ {"id":"tags","frame":"Q0xSpzkJsa","w":360,"route":"/tags","seed":{"tags":["imba","gg"]}},
+ {"id":"tags-shop","frame":"dIfNsV479J","w":360,"route":"/tags","actions":["[data-tag=tilt]"]},
+ {"id":"launch-new","frame":"TV2PsKN718","w":360,"route":"/launch"},
+ {"id":"launch-ready","frame":"UdCJQmO-PZ","w":360,"route":"/launch","actions":["#gen"]},
+ {"id":"buy","frame":"12vEbw37tH","w":360,"route":"/buy"},
+ {"id":"buy-hwid","frame":"OjG3vAzX_V","w":360,"route":"/buy?tab=hwid"},
+ {"id":"pay","frame":"gTJmswFDVA","w":360,"route":"/pay?kind=tag&item=tilt"},
+ {"id":"media","frame":"VD9byiqQu6","w":360,"route":"/media","seed":{"balance_k":0,"earned_k":0}},
+ {"id":"media2","frame":"fJraARbn8q","w":360,"route":"/media?slide=2"},
+ {"id":"media3","frame":"OlDeug63jq","w":360,"route":"/media?slide=3"},
+ {"id":"withdraw","frame":"NN28O37VHH","w":360,"route":"/withdraw"}
+]
