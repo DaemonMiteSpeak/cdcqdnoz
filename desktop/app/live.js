@@ -220,8 +220,8 @@
     loginWin.classList.add('shake');
     setTimeout(() => loginWin.classList.remove('shake'), 420);
   }
-  const ERR = { hwid: 'This key is bound to another PC. Ask the admin to reset HWID', 'server-auth': 'Server identity check failed (fake server)', proto: 'Protocol error, update the app',
-    empty: 'Enter your username and activation key', invalid: 'Invalid username or activation key', network: 'Cannot reach the Hider server',
+  const ERR = { hwid: 'This account is bound to another PC. Reset HWID in the Telegram bot (Profile)', 'server-auth': 'Server identity check failed (fake server)', proto: 'Protocol error, update the app',
+    empty: 'Enter your Telegram username and license key', invalid: 'Invalid Telegram username or license key', expired: 'Your subscription has expired. Renew it in the Telegram bot', banned: 'This account is blocked', unavailable: 'Server is busy, try again in a moment', network: 'Cannot reach the Hider server',
     rate: 'Too many attempts, wait a minute', internal: 'Something went wrong'
   };
 
@@ -306,8 +306,8 @@
     try { init = await api.init(); } catch { init = { ok: false }; }
     user.value = (init && init.lastUser) || ls('user') || '';
     pass.value = '';
-    user.placeholder = 'Username';
-    pass.placeholder = 'Activation key';
+    user.placeholder = 'Telegram username';
+    pass.placeholder = 'License key';
     user.dispatchEvent(new Event('input'));
     pass.dispatchEvent(new Event('input'));
     if (init && init.ok) {

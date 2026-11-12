@@ -287,7 +287,7 @@ class Backend extends EventEmitter {
     switch (m.t) {
       case 'hello': {
         this.retry = 0; this.conn = 'online';
-        this.profile = { name: m.name, tag: m.tag, until: m.until, created: m.created };
+        this.profile = { id: m.id, name: m.name, firstName: m.firstName || '', tag: m.tag, tagColor: m.tagColor || '', avatar: m.avatar || '', until: m.until, created: m.created };
         if (m.token) { this.token = m.token; this.store.token = this.o.encrypt ? this.o.encrypt(m.token) : null; }
         if (m.name) this.store.user = m.name;
         this.saveStore();
