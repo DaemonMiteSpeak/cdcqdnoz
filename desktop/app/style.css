@@ -1,0 +1,1096 @@
+/* ==========================================================================
+   Hider — 1:1 recreation of aut.svg
+   artboard: 1920 × 1080 · window: 495 × 400 @ (712, 340)
+   all outlined lettering and icons are the original vector paths
+   ========================================================================== */
+
+@font-face {
+  font-family: "Inter";
+  src: url("assets/inter-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --red: #EF393C;
+  --window: #0F0F0F;
+  --bar: #121212;
+  --ink: #FFFFFF;
+  --muted: #666666;
+  --value: #D9D9D9;
+  --field-idle: #696969;
+  --field-active: #D9D9D9;
+  --field-hover: #131313;
+  --ease: cubic-bezier(.22, .8, .22, 1);
+  --color-time: .28s;
+  --hairline: rgba(255, 255, 255, .06);
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body {
+  height: 100%;
+}
+
+html { background: #000; }
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+  color: var(--ink);
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input {
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+button { cursor: pointer; }
+svg { display: block; }
+a { color: inherit; text-decoration: none; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   stage
+   -------------------------------------------------------------------------- */
+
+.fit {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: #000;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.world {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #000 url("assets/world-map.jpg") 0 0 / 100% 100% no-repeat;
+}
+
+/* exact feTurbulence grain from the source file, laid over the whole artboard */
+.noise {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  width: 1920px;
+  height: 1080px;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   window
+   -------------------------------------------------------------------------- */
+
+.window {
+  position: absolute;
+  left: 712px;
+  top: 340px;
+  z-index: 1;
+  width: 495px;
+  height: 400px;
+  overflow: hidden;
+  border-radius: 21px;
+  background: var(--window);
+  isolation: isolate;
+  -webkit-user-select: none;
+  user-select: none;
+  transition:
+    height .32s cubic-bezier(.22, .8, .22, 1),
+    background-color .32s ease,
+    border-radius .32s ease,
+    opacity .26s ease,
+    transform .32s cubic-bezier(.22, .8, .22, 1);
+}
+
+.window.is-minimized {
+  height: 49px;
+  border-radius: 21px;
+  background: var(--bar);
+}
+
+.window.is-minimized .titlebar { background: transparent; }
+
+.window.is-closed {
+  opacity: 0;
+  transform: scale(.965);
+  pointer-events: none;
+}
+
+.restore {
+  position: absolute;
+  left: 959.5px;
+  top: 540px;
+  z-index: 10;
+  padding: 11px 19px;
+  border-radius: 8px;
+  background: #121212;
+  box-shadow: inset 0 0 0 .6px rgba(255, 255, 255, .08);
+  color: var(--value);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: .3px;
+  transform: translate(-50%, -50%);
+  transition: color var(--color-time) ease, background-color var(--color-time) ease, box-shadow var(--color-time) ease;
+}
+
+.restore:hover {
+  color: #fff;
+  background: #161616;
+  box-shadow: inset 0 0 0 .6px rgba(239, 57, 60, .5);
+}
+
+/* title bar — the source path is a 484 × 44 rounded-top bar inset 5 / 5 */
+.titlebar {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  z-index: 6;
+  width: 484px;
+  height: 44px;
+  border-radius: 21px 21px 0 0;
+  background: var(--bar);
+  transition: background-color .32s ease;
+}
+
+.titlebar-art {
+  position: absolute;
+  inset: 0;
+  width: 484px;
+  height: 44px;
+  pointer-events: none;
+}
+
+/* decorative window controls — hit areas only, icons live in the svg */
+.win-hit {
+  position: absolute;
+  top: 6px;
+  z-index: 2;
+  height: 32px;
+  border-radius: 7px;
+}
+
+.win-min { left: 427px; width: 27px; }
+.win-close { left: 451px; width: 27px; }
+
+/* title bar symbols: entrance, hover motion and minus → plus replacement */
+#iconMin,
+#iconClose {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chrome-in .46s .24s both var(--ease);
+}
+
+#iconClose { animation-delay: .31s; }
+
+#minGlyph,
+#iconClose path {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform .25s var(--ease), fill var(--color-time) ease;
+}
+
+#minGlyph path { transition: fill var(--color-time) ease; }
+
+#iconRestoreBar {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(90deg) scaleX(0);
+  opacity: 0;
+  transition:
+    transform .3s var(--ease),
+    opacity .24s ease,
+    fill var(--color-time) ease;
+}
+
+.window.is-minimized #iconRestoreBar {
+  transform: rotate(90deg) scaleX(1);
+  opacity: 1;
+}
+
+.window:has(.win-min:hover) #minGlyph { transform: translateY(1px); }
+.window:has(.win-min:hover) #iconMin path { fill: #D9D9D9; }
+.window:has(.win-close:hover) #iconClose path { fill: var(--red); transform: scale(1.16); }
+.window:has(.win-close:active) #iconClose path { fill: #FF5B5E; transform: scale(.94); }
+
+/* --------------------------------------------------------------------------
+   vector layers
+   -------------------------------------------------------------------------- */
+
+.bottom-art,
+.content-art {
+  position: absolute;
+  inset: 0;
+  width: 495px;
+  height: 400px;
+  pointer-events: none;
+}
+
+.bottom-art { z-index: 1; }
+.content-art { z-index: 4; }
+
+/* bottom + / = / space field: each cell can flip to another symbol or a gap */
+#bottomSymbols .sym {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform .1s var(--ease),
+    opacity .12s ease,
+    filter .18s ease;
+}
+
+#bottomSymbols .sym.is-flipping {
+  transform: scaleY(.06);
+  opacity: .18;
+  filter: brightness(3.2);
+}
+
+#bottomSymbols .sym[data-kind="plus"] .sym-eq,
+#bottomSymbols .sym[data-kind="equals"] .sym-plus,
+#bottomSymbols .sym[data-kind="space"] .sym-plus,
+#bottomSymbols .sym[data-kind="space"] .sym-eq { opacity: 0; }
+
+/* --------------------------------------------------------------------------
+   interactive layer
+   -------------------------------------------------------------------------- */
+
+.controls {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.controls > * { pointer-events: auto; }
+
+.field-hit {
+  position: absolute;
+  left: 121px;
+  width: 257px;
+  height: 30px;
+  border-radius: 7px;
+  cursor: text;
+}
+
+.field-hit-user { top: 157px; }
+.field-hit-pass { top: 197px; }
+
+.field-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 30px;
+  padding: 0 26px 0 28px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: .05px;
+  color: transparent;
+  caret-color: transparent;
+  -webkit-text-fill-color: currentColor;
+  text-overflow: clip;
+  transition: color .12s ease;
+}
+
+/* selection keeps the text readable: soft red plate, white glyphs */
+.field-input::selection {
+  background: rgba(239, 57, 60, .38);
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
+}
+
+/* masked key: the real dots stay invisible, our own plate follows the star grid */
+.window:not(.is-pass-revealed) #password::selection {
+  background: transparent;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.pass-sel {
+  position: absolute;
+  top: 8px;
+  z-index: 2;
+  height: 14px;
+  border-radius: 3px;
+  background: rgba(239, 57, 60, .38);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease;
+}
+
+.pass-sel.is-on { opacity: 1; }
+
+/* username: outlined art at rest, native text while editing / after a change */
+.window.is-user-live #username { color: var(--field-idle); }
+.window.is-user-live:has(#username:focus) #username { color: var(--field-active); }
+#username:focus { caret-color: var(--field-active); }
+
+/* password: the original sparkle row at rest and while typing, plain text when revealed */
+.window.is-pass-revealed #password { color: var(--field-idle); }
+.window.is-pass-revealed:has(#password:focus) #password { color: var(--field-active); }
+.window.is-pass-revealed #password:focus { caret-color: var(--field-active); }
+
+/* while masked, text/dots must never paint — only the SVG sparkles above them */
+.window:not(.is-pass-revealed) #password {
+  color: transparent;
+  transition: none;
+}
+
+.window.is-user-live #artUserValue { opacity: 0; }
+.window.is-pass-revealed #artPassValue { opacity: 0; }
+
+#artUserValue { transition: opacity .12s ease; }
+#artPassValue { transition: opacity .12s ease; }
+
+#artUserValue path,
+#artPassValue path {
+  fill: var(--field-idle);
+  transition: fill var(--color-time) ease;
+}
+
+.window:has(#username:focus) #artUserValue path,
+.window:has(#password:focus) #artPassValue path { fill: var(--field-active); }
+
+/* custom blinking caret for the masked key so it always sits on the original star grid */
+.pass-caret {
+  position: absolute;
+  top: 11px;
+  z-index: 3;
+  width: .5px;
+  height: 8px;
+  border-radius: .5px;
+  background: var(--field-active);
+  opacity: 0;
+  pointer-events: none;
+  will-change: left, opacity;
+}
+
+.window.is-pass-caret .pass-caret {
+  opacity: 1;
+  animation: caret-blink 1.06s step-end infinite;
+}
+
+.eye-hit {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.login-hit {
+  position: absolute;
+  left: 121px;
+  top: 237px;
+  width: 257px;
+  height: 30px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.buy-hit {
+  position: absolute;
+  left: 246px;
+  top: 272px;
+  width: 38px;
+  height: 16px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   states — all applied to the original vector shapes
+   -------------------------------------------------------------------------- */
+
+#fieldUserBorder rect,
+#fieldPassBorder rect,
+#btnBorder rect,
+#artEye path,
+#btnBg rect,
+#fieldUserBg rect,
+#fieldPassBg rect,
+#artBuyOne path {
+  transition:
+    fill var(--color-time) ease,
+    stroke var(--color-time) ease,
+    stroke-opacity var(--color-time) ease,
+    opacity .22s ease;
+}
+
+#artEye { transition: opacity .22s ease; }
+
+/* fields */
+#fieldUserBorder rect,
+#fieldPassBorder rect {
+  stroke: var(--field-idle);
+  stroke-opacity: 1;
+}
+
+.window:has(.field-hit-user:hover) #fieldUserBg rect,
+.window:has(.field-hit-pass:hover) #fieldPassBg rect { fill: var(--field-hover); }
+
+.window:has(#username:focus) #fieldUserBorder rect,
+.window:has(#password:focus) #fieldPassBorder rect { stroke: var(--field-active); }
+
+/* login */
+.window:has(.login-hit:hover) #btnBg rect { fill: #F14447; }
+.window:has(.login-hit:hover) #btnBorder rect { stroke-opacity: .13; }
+.window:has(.login-hit:active) #btnBg rect { fill: #E43235; }
+
+/* eye: open eye when the key is hidden, closed eye when it is shown */
+.window:has(.eye-hit:hover) #artEye path,
+.window:has(.eye-hit:hover) #artEyeClosed path { fill: #8A8A8A; }
+#artEyeClosed { opacity: 0; transition: opacity .22s ease; }
+.window.is-pass-revealed #artEye { opacity: 0; }
+.window.is-pass-revealed #artEyeClosed { opacity: .55; }
+.window.is-pass-revealed:has(.eye-hit:hover) #artEyeClosed { opacity: 1; }
+
+/* buy link */
+.window:has(.buy-hit:hover) #artBuyOne path { fill: #FF5B5E; }
+
+/* keyboard focus, drawn on the original border instead of a browser outline */
+.field-input:focus-visible { outline: 0; }
+
+/* --------------------------------------------------------------------------
+   tiny feedback animations (never present at rest)
+   -------------------------------------------------------------------------- */
+
+@keyframes invalid-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+.window.shake { animation: invalid-shake .38s cubic-bezier(.36, .07, .19, .97); }
+
+@keyframes submit-pulse {
+  0% { filter: brightness(1); }
+  35% { filter: brightness(1.15); }
+  100% { filter: brightness(1); }
+}
+
+.window.submitting #btnBg,
+.window.submitting #artLoginIcon,
+.window.submitting #artLoginText {
+  animation: submit-pulse .48s ease;
+}
+
+@keyframes buy-pop {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-1px); }
+}
+
+.window.buy-pop #artBuyOne { animation: buy-pop .32s ease; }
+
+@keyframes chrome-in {
+  from { opacity: 0; transform: translateY(-1.5px) scale(.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .window.shake,
+  .window.submitting #btnBg,
+  .window.submitting #artLoginIcon,
+  .window.submitting #artLoginText,
+  .window.buy-pop #artBuyOne,
+  #iconMin,
+  #iconClose {
+    animation: none;
+  }
+
+  .window { transition-duration: .01ms; }
+  #bottomSymbols .sym { transition: none; }
+}
+
+/* page2:start */
+/* ==========================================================================
+   page 2 — Hider app window (ported 1:1 from main.svg)
+   artboard: 1920 × 1080 · window: 600 × 395 @ (712, 340)
+   ========================================================================== */
+
+.window.app {
+  width: 600px;
+  height: 395px;
+}
+
+.window.app.is-minimized {
+  height: 49px;
+  border-radius: 21px;
+  background: var(--bar);
+}
+
+.app-art {
+  position: absolute;
+  inset: 0;
+  width: 600px;
+  height: 395px;
+  pointer-events: none;
+}
+
+.app-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+}
+
+.app-hit,
+.app-tab {
+  position: absolute;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.app-min { left: 543px; top: 17px; width: 22px; height: 26px; }
+.app-close { left: 563px; top: 15px; width: 22px; height: 26px; }
+.app-version { left: 186px; top: 114px; width: 62px; height: 30px; }
+.app-toggle { left: 219px; top: 158px; width: 31px; height: 19px; border-radius: 10px; }
+.app-get { left: 18px; top: 201px; width: 230px; height: 30px; }
+.app-ban { left: 259px; top: 195px; width: 41px; height: 41px; border-radius: 50%; }
+.app-card { left: 264px; top: 60px; width: 324px; height: 46px; }
+.app-card-arrow { left: 566px; top: 76px; width: 18px; height: 18px; border-radius: 6px; }
+.app-role { left: 300px; top: 201px; width: 289px; height: 31px; }
+.app-logcopy { left: 555px; top: 252px; width: 16px; height: 16px; border-radius: 4px; }
+.app-logclear { left: 573px; top: 252px; width: 16px; height: 16px; border-radius: 4px; }
+
+.app-tabs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.app-tabs > * { pointer-events: auto; }
+
+.app-tab[data-filter="all"] { left: 29px; top: 253px; width: 22px; height: 18px; border-radius: 4px; }
+.app-tab[data-filter="warn"] { left: 77px; top: 253px; width: 54px; height: 18px; border-radius: 4px; }
+.app-tab[data-filter="err"] { left: 150px; top: 253px; width: 36px; height: 18px; border-radius: 4px; }
+
+/* -------------------------------------------------------- server field */
+
+.app-input {
+  position: absolute;
+  left: 18px;
+  top: 114px;
+  box-sizing: border-box;
+  width: 161px;
+  height: 30px;
+  padding: 0 12px 0 27px;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: .1px;
+  color: #666666;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  border: 0;
+  border-radius: 7px;
+  outline: none;
+  cursor: text;
+  caret-color: var(--field-active);
+  text-overflow: ellipsis;
+  transition: color .16s ease;
+}
+
+.window.app:has(.app-input:focus) .app-input { color: var(--field-active); }
+
+.app-input::selection {
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
+  background: rgba(239, 57, 60, .38);
+}
+
+.app-globe {
+  position: absolute;
+  left: 26px;
+  top: 122px;
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: #666666;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  transition: stroke .2s ease;
+}
+
+.window.app:has(.app-input:focus) .app-globe { stroke: var(--field-active); }
+
+/* the hairline answers focus the same way the login field border does */
+[data-i="22"] { transition: stroke-opacity var(--color-time) ease; }
+.window.app:has(.app-input:focus) [data-i="22"] { stroke-opacity: .34; }
+
+/* artwork keeps its own placeholder glyphs hidden */
+.window.app .app-art [data-i="34"],
+.window.app .app-art [data-i="35"] { opacity: 0; }
+
+/* ---------------------------------------------------------- versions */
+
+.app-version-label {
+  position: absolute;
+  left: 197px;
+  top: 114px;
+  height: 30px;
+  font-size: 11px;
+  line-height: 30px;
+  letter-spacing: .1px;
+  color: #666666;
+  pointer-events: none;
+  transition: color .2s ease;
+}
+
+.window.app:has(.app-version:hover) .app-version-label,
+.window.app.is-version-open .app-version-label { color: #9A9A9A; }
+
+/* The plate itself grows downward: the header row (current version) stays put,
+   the list unfolds underneath it and folds back the same way. */
+.app-version-label,
+.app-version { z-index: 32; }
+
+.app-versions {
+  --n: 5;
+  --row: 24px;
+  --head: 30px;
+  position: absolute;
+  left: 186px;
+  top: 114px;
+  z-index: 30;
+  box-sizing: border-box;
+  width: 62px;
+  height: var(--head);
+  padding: var(--head) 0 0;
+  overflow: hidden;
+  border-radius: 7px;
+  background-color: rgba(23, 23, 23, 0);
+  box-shadow: 0 0 0 .6px rgba(255, 255, 255, 0), 0 0 0 rgba(0, 0, 0, 0);
+  pointer-events: none;
+  transition:
+    height .28s var(--ease),
+    background-color .2s ease,
+    box-shadow .28s ease;
+}
+
+.window.app.is-version-open .app-versions {
+  height: calc(var(--head) + var(--n) * var(--row) + 6px);
+  overflow: hidden;
+  background-color: #171717;
+  box-shadow: 0 0 0 .6px rgba(255, 255, 255, .16), 0 16px 28px rgba(0, 0, 0, .55);
+  transition:
+    height .36s var(--ease),
+    background-color .2s ease,
+    box-shadow .32s ease;
+}
+
+.app-versions { scrollbar-width: none; }
+.app-versions::-webkit-scrollbar { display: none; }
+
+/* hairline between the header and the list */
+.app-versions::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: calc(var(--head) - 1px);
+  height: 1px;
+  background: rgba(255, 255, 255, .07);
+  opacity: 0;
+  transform: scaleX(.4);
+  transition: opacity .16s ease, transform .3s var(--ease);
+}
+
+.window.app.is-version-open .app-versions::before {
+  opacity: 1;
+  transform: none;
+  transition-delay: .06s;
+}
+
+/* one plate that glides between rows on hover */
+.app-version-hl {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  top: 0;
+  height: calc(var(--row) - 2px);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, .075);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .22s var(--ease), opacity .16s ease;
+}
+
+.app-version-hl.is-on { opacity: 1; }
+
+.app-version-opt {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: var(--row);
+  padding: 0 0 0 11px;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 11px;
+  line-height: var(--row);
+  text-align: left;
+  color: #7E7E7E;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition:
+    color .16s ease,
+    padding-left .22s var(--ease),
+    opacity .12s ease,
+    transform .2s var(--ease);
+}
+
+.window.app.is-version-open .app-version-opt {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition:
+    color .16s ease,
+    padding-left .22s var(--ease),
+    opacity .2s ease calc(var(--i, 0) * 32ms + 70ms),
+    transform .3s var(--ease) calc(var(--i, 0) * 32ms + 70ms);
+}
+
+.app-version-opt:hover,
+.app-version-opt:focus-visible {
+  color: #F2F2F2;
+  padding-left: 14px;
+}
+
+/* current version: bright text and a small red marker on the left edge */
+.app-version-opt[aria-selected="true"] { color: #FFFFFF; }
+
+.app-version-opt::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 2px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 1px;
+  background: var(--red);
+  opacity: 0;
+  transform: scaleY(.3);
+  transition: opacity .2s ease, transform .26s var(--ease);
+}
+
+.app-version-opt[aria-selected="true"]::before {
+  opacity: 1;
+  transform: none;
+}
+
+/* --------------------------------------------------------------- hover */
+
+.window.app:has(.app-input:hover) [data-i="21"],
+.window.app:has(.app-version:hover) [data-i="28"],
+.window.app.is-version-open [data-i="28"] { fill: #171717; }
+
+.window.app:has(.app-input:hover) [data-i="22"],
+.window.app:has(.app-version:hover) [data-i="29"],
+.window.app.is-version-open [data-i="29"] { stroke-opacity: .16; }
+
+.window.app:has(.app-get:hover) [data-i="12"] { fill: #F14447; }
+.window.app:has(.app-get:active) [data-i="12"] { fill: #E43235; }
+
+/* switch role sits at 43% while no client is connected */
+[data-i="16"] { transition: opacity .24s ease; }
+.window.app:has(.app-role:hover) [data-i="16"] { opacity: .74; }
+.window.app:has(.app-role:active) [data-i="16"] { opacity: 1; }
+
+/* the account card itself stays still — only its arrow reacts */
+[data-i="27"] path { transition: fill .2s ease; }
+.window.app:has(.app-card-arrow:hover) [data-i="27"] path { fill: var(--red); }
+
+.window.app:has(.app-ban:hover) [data-i="20"] { filter: brightness(1.7); }
+
+.window.app:has(.app-min:hover) [data-i="2"] { fill: #D9D9D9; }
+.window.app:has(.app-close:hover) [data-i="3"] { fill: var(--red); }
+.window.app:has(.app-close:active) [data-i="3"] { fill: #FF5B5E; }
+
+/* 33 = left icon (copy), 32 = right icon (clear) */
+[data-i="32"] path,
+[data-i="33"] path { transition: fill .2s ease; }
+
+.window.app:has(.app-logcopy:hover) [data-i="33"] path,
+.window.app:has(.app-logclear:hover) [data-i="32"] path { fill: #D9D9D9; }
+
+/* --------------------------------------------------------------- toggle */
+
+[data-i="52"],
+[data-i="53"],
+[data-i="54"] {
+  transition: fill .22s ease, transform .26s var(--ease), stroke-opacity .22s ease;
+}
+
+.window.app.is-account-on [data-i="52"] { fill: var(--red); }
+.window.app.is-account-on [data-i="53"] { stroke-opacity: .2; }
+.window.app.is-account-on [data-i="54"] { transform: translateX(11.5px); fill: #FFFFFF; }
+
+/* ------------------------------------------------------------ log tabs */
+
+[data-i="46"],
+[data-i="47"],
+[data-i="48"] { fill: #535353; transition: fill .2s ease; }
+
+.window.app.is-log-all [data-i="46"],
+.window.app.is-log-warn [data-i="47"],
+.window.app.is-log-err [data-i="48"] { fill: #C4C4C4; }
+
+.window.app:has(.app-tab[data-filter="all"]:hover) [data-i="46"],
+.window.app:has(.app-tab[data-filter="warn"]:hover) [data-i="47"],
+.window.app:has(.app-tab[data-filter="err"]:hover) [data-i="48"] { fill: #E6E6E6; }
+
+/* filtered rows fade out and the rest slide together */
+.app-art [data-sev] {
+  transition: opacity .24s ease, translate .3s var(--ease);
+}
+
+.window.app.is-log-warn .app-art [data-sev="info"],
+.window.app.is-log-warn .app-art [data-sev="err"],
+.window.app.is-log-err .app-art [data-sev="info"],
+.window.app.is-log-err .app-art [data-sev="warn"],
+.window.app.is-logs-cleared .app-art [data-sev] { opacity: 0; }
+
+/* --------------------------------------------------------- page change */
+
+.window.is-leaving {
+  opacity: 0;
+  transform: scale(.975) translateY(-6px);
+  pointer-events: none;
+}
+
+@keyframes app-in {
+  from { opacity: 0; transform: translateY(10px) scale(.972); }
+  to { opacity: 1; transform: none; }
+}
+
+.window.app.is-in { animation: app-in .44s var(--ease) both; }
+
+/* ------------------------------------------------------- entrance waves */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes rise-keep {
+  from { transform: translateY(5px); }
+  to { transform: none; }
+}
+
+@keyframes slide-x {
+  from { opacity: 0; transform: translateX(-7px); }
+  to { opacity: 1; transform: none; }
+}
+
+.window.app.is-in .app-art [data-i="1"],
+.window.app.is-in .app-art [data-i="4"],
+.window.app.is-in .app-art [data-i="5"],
+.window.app.is-in .app-art [data-i="6"],
+.window.app.is-in .app-art [data-i="2"],
+.window.app.is-in .app-art [data-i="3"] { animation: rise .46s .02s var(--ease) both; }
+
+.window.app.is-in .app-art [data-i="10"],
+.window.app.is-in .app-art [data-i="37"],
+.window.app.is-in .app-art [data-i="44"],
+.window.app.is-in .app-art [data-i="42"],
+.window.app.is-in .app-art [data-i="21"],
+.window.app.is-in .app-art [data-i="22"],
+.window.app.is-in .app-art [data-i="28"],
+.window.app.is-in .app-art [data-i="29"],
+.window.app.is-in .app-art [data-i="50"],
+.window.app.is-in .app-art [data-i="51"] { animation: rise .5s .1s var(--ease) both; }
+
+.window.app.is-in .app-art [data-i="39"],
+.window.app.is-in .app-art [data-i="41"],
+.window.app.is-in .app-art [data-i="52"],
+.window.app.is-in .app-art [data-i="53"],
+.window.app.is-in .app-art [data-i="54"],
+.window.app.is-in .app-art [data-i="36"],
+.window.app.is-in .app-art [data-i="12"],
+.window.app.is-in .app-art [data-i="13"],
+.window.app.is-in .app-art [data-i="14"],
+.window.app.is-in .app-art [data-i="15"] { animation: rise .5s .18s var(--ease) both; }
+
+.window.app.is-in .app-art [data-i="27"],
+.window.app.is-in .app-art [data-i="55"],
+.window.app.is-in .app-art [data-i="56"],
+.window.app.is-in .app-art [data-i="57"],
+.window.app.is-in .app-art [data-i="58"],
+.window.app.is-in .app-art [data-i="59"],
+.window.app.is-in .app-art [data-i="60"] { animation: rise .5s .12s var(--ease) both; }
+
+/* the glass card keeps its blur from the very first frame: an opacity wave
+   over a backdrop filter makes the blur pop in late */
+.window.app.is-in .app-art [data-i="23"],
+.window.app.is-in .app-art [data-i="24"],
+.window.app.is-in .app-art [data-i="25"],
+.window.app.is-in .app-art [data-i="26"] { animation: none; }
+
+.window.app.is-in .app-art [data-i="11"],
+.window.app.is-in .app-art [data-i="38"],
+.window.app.is-in .app-art [data-i="61"],
+.window.app.is-in .app-art [data-i="20"] { animation: rise .5s .2s var(--ease) both; }
+
+.window.app.is-in .app-art [data-i="16"],
+.window.app.is-in .app-art [data-i="17"],
+.window.app.is-in .app-art [data-i="18"],
+.window.app.is-in .app-art [data-i="19"] { animation: rise-keep .5s .24s var(--ease) both; }
+
+.window.app.is-in .app-art [data-i="45"],
+.window.app.is-in .app-art [data-i="46"],
+.window.app.is-in .app-art [data-i="47"],
+.window.app.is-in .app-art [data-i="48"],
+.window.app.is-in .app-art [data-i="31"],
+.window.app.is-in .app-art [data-i="32"],
+.window.app.is-in .app-art [data-i="33"] { animation: rise .5s .26s var(--ease) both; }
+
+.window.app.is-in .app-art [data-i="30"] { animation: rise-keep .5s .26s var(--ease) both; }
+
+.window.app.is-in .app-art [data-row="0"] { animation: slide-x .4s .34s var(--ease) both; }
+.window.app.is-in .app-art [data-row="1"] { animation: slide-x .4s .395s var(--ease) both; }
+.window.app.is-in .app-art [data-row="2"] { animation: slide-x .4s .45s var(--ease) both; }
+.window.app.is-in .app-art [data-row="3"] { animation: slide-x .4s .505s var(--ease) both; }
+.window.app.is-in .app-art [data-row="4"] { animation: slide-x .4s .56s var(--ease) both; }
+.window.app.is-in .app-art [data-row="5"] { animation: slide-x .4s .615s var(--ease) both; }
+.window.app.is-in .app-art [data-row="6"] { animation: slide-x .4s .67s var(--ease) both; }
+
+/* ------------------------------------------------------------ feedback */
+
+@keyframes fetch-pulse {
+  0%, 100% { opacity: 1; }
+  45% { opacity: .3; }
+}
+
+.window.app.is-fetching [data-i="12"] { animation: submit-pulse .9s ease; }
+
+/* copy / clear answer with colour, not with size */
+@keyframes icon-flash {
+  0%, 100% { fill: #484848; }
+  30% { fill: #FFFFFF; }
+  62% { fill: var(--red); }
+}
+
+.window.app .app-art .is-pop path { animation: icon-flash .44s ease; }
+
+/* unavailable actions shake instead of moving */
+@keyframes app-deny {
+  0%, 100% { translate: 0 0; }
+  18% { translate: -3px 0; }
+  36% { translate: 3px 0; }
+  54% { translate: -2px 0; }
+  72% { translate: 2px 0; }
+  88% { translate: -1px 0; }
+}
+
+.window.app .app-art .is-deny { animation: app-deny .42s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .window.app.is-in,
+  .window.app.is-in .app-art [data-i],
+  .window.app.is-in .app-art [data-row],
+  .window.app.is-fetching [data-i="12"],
+  .window.app .app-art .is-pop path,
+  .window.app .app-art .is-deny,
+  .app-versions,
+  .app-versions::before,
+  .app-version-opt,
+  .app-version-hl {
+    transition: none !important;
+  }
+}
+
+/* ------------------------------------------------------- bottom symbols */
+
+.app-symbols { pointer-events: none; }
+
+.app-symbols .sym {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform .1s var(--ease),
+    opacity .12s ease,
+    filter .18s ease;
+}
+
+.app-symbols .sym.is-flipping {
+  transform: scaleY(.06);
+  opacity: .18;
+  filter: brightness(3.2);
+}
+
+.app-symbols .sym[data-kind="plus"] .sym-eq,
+.app-symbols .sym[data-kind="equals"] .sym-plus,
+.app-symbols .sym[data-kind="space"] .sym-plus,
+.app-symbols .sym[data-kind="space"] .sym-eq { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-symbols .sym { transition: none; }
+}
+/* page2:end */

@@ -1,0 +1,14 @@
+import { chromium } from '/tmp/pw/node_modules/playwright/index.mjs';
+const [route, sel] = [process.argv[2] || '/', process.argv[3] || '.app > *'];
+const BASE = 'http://localhost:3111'; const uid = 5555;
+const hdr = { 'x-dev-user': String(uid), 'x-dev-username': 'YukeeDesign', 'Content-Type': 'application/json' };
+const b = await chromium.launch();
+const p = await (await b.newContext({ viewport: { width: 360, height: 900 }, timezoneId: 'Europe/Moscow' })).newPage();
+await p.request.get(`${BASE}/api/state`, { headers: hdr });
+await p.request.post(`${BASE}/api/dev/seed`, { headers: hdr, data: { gate_ok: 1, sub_until: Date.now() + 57 * 86400000, sub_total_days: 61, hwid: '0DA3-A2D8', launches: 9, last_launch_at: Date.now(), media_status: 1, balance_k: 128400, earned_k: 481200, photo_url: '/img/dev-avatar.png' } });
+await p.goto(`${BASE}/?dev=${uid}#${route}`);
+await p.waitForTimeout(900);
+if (process.argv[4]) await p.addStyleTag({ content: process.argv[4] });
+const rows = await p.evaluate((s) => [...document.querySelectorAll(s)].map((e) => { const r = e.getBoundingClientRect(); return `${(e.className || e.tagName).toString().slice(0, 28).padEnd(28)} y=${Math.round(r.top)} h=${Math.round(r.height)}`; }), sel);
+console.log(rows.join('\n'));
+await b.close();
